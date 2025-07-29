@@ -61,3 +61,20 @@
 ## CatlikeCoding
 
 - **[Basics - Measuring Performance](https://catlikecoding.com/unity/tutorials/basics/measuring-performance/)**：找不到 URP 的 SRP Batcher 在哪里关闭……
+
+  - 重点参考如下文档：https://docs.unity.cn/Packages/com.unity.render-pipelines.universal@16.0/manual/universalrp-asset.html
+
+    - > 任何使用通用渲染管线（URP）的 Unity 项目都必须具有 URP 资产来配置设置。当您使用 URP 模板创建项目时，Unity 会在 **Settings** 项目文件夹中创建 URP 资产，并在 Project Settings 中分配它们。如果你要将现有项目迁移到 URP，则需要[创建一个 URP 资产，并在图形设置中分配该资产 ](https://docs.unity.cn/Packages/com.unity.render-pipelines.universal@16.0/manual/InstallURPIntoAProject.html)。
+
+    - > 在 URP 资产的任意分段中，点击垂直省略号图标（⋮），然后选择 **显示其他属性（Show Additional Properties）**
+
+  - 默认在 `Assets` 中会有 `UniversalRenderPipelineGlobalSettings.asset`
+
+    - 对应也就是 Project Settings 下 Graphics - URP Global Settings 里有跳转链接（也在这里可以更改设置）
+
+  - 而对应使用的资产，则可以在 Project Settings 下的 Graphics 中的 Scriptable Render Pipeline Settings 看到，点击可跳转
+
+    - 项目中默认是 `Assets/Settings/URP-HighFidelity.asset`
+
+  - 而修改 SRP Batcher，则需要在其中的 Rendering 右侧点击三个点的按钮，选择 Show Additional Properties。这样其中才会有 SRP Batcher 单选框
+
