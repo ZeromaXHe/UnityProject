@@ -95,6 +95,7 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
         public interface ILattice
         {
             LatticeSpan4 GetLatticeSpan4(float4 coordinates, int frequency);
+            int4 ValidateSingleStep(int4 points, int frequency);
         }
 
         public struct LatticeNormal : ILattice
@@ -112,6 +113,8 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                 span.T = span.T * span.T * span.T * (span.T * (span.T * 6f - 15f) + 10f);
                 return span;
             }
+
+            public int4 ValidateSingleStep(int4 points, int frequency) => points;
         }
 
         public struct LatticeTiling : ILattice
@@ -134,6 +137,9 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                 span.T = span.T * span.T * span.T * (span.T * (span.T * 6f - 15f) + 10f);
                 return span;
             }
+
+            public int4 ValidateSingleStep(int4 points, int frequency) =>
+                select(select(points, 0, points == frequency), frequency - 1, points == -1);
         }
     }
 }

@@ -367,11 +367,11 @@ MonoBehaviour:
   instanceScale: 2
   resolution: 256
   displacement: 0.1
-  type: 0
+  type: 6
   noiseSettings:
     seed: 0
     frequency: 4
-    octaves: 3
+    octaves: 1
     lacunarity: 2
     persistence: 0.5
   dimensions: 3
