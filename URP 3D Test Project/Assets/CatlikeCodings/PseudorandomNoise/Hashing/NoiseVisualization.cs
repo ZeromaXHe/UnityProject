@@ -8,15 +8,29 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
 {
     public class NoiseVisualization : Visualization
     {
-        private static ScheduleDelegate[] _noiseJobs =
+        private static readonly ScheduleDelegate[,] NoiseJobs =
         {
-            Job<Lattice1D>.ScheduleParallel,
-            Job<Lattice2D>.ScheduleParallel,
-            Job<Lattice3D>.ScheduleParallel
+            {
+                Job<Lattice1D<Perlin>>.ScheduleParallel,
+                Job<Lattice2D<Perlin>>.ScheduleParallel,
+                Job<Lattice3D<Perlin>>.ScheduleParallel
+            },
+            {
+                Job<Lattice1D<Value>>.ScheduleParallel,
+                Job<Lattice2D<Value>>.ScheduleParallel,
+                Job<Lattice3D<Value>>.ScheduleParallel
+            }
         };
 
         private static readonly int NoiseId = Shader.PropertyToID("_Noise");
 
+        private enum NoiseType
+        {
+            Perlin,
+            Value
+        }
+
+        [SerializeField] private NoiseType type;
         [SerializeField] private int seed;
         [SerializeField, Range(1, 3)] private int dimensions = 3;
         [SerializeField] private SpaceTRS domain = new() { scale = 8f };
@@ -40,7 +54,7 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
 
         protected override void UpdateVisualization(NativeArray<float3x4> positions, int resolution, JobHandle handle)
         {
-            _noiseJobs[dimensions - 1](positions, _noise, seed, domain, resolution, handle).Complete();
+            NoiseJobs[(int)type, dimensions - 1](positions, _noise, seed, domain, resolution, handle).Complete();
             _noiseBuffer.SetData(_noise.Reinterpret<float>(4 * 4));
         }
     }

@@ -8,16 +8,17 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
     /// Date: 2025-08-12 20:19:59
     public static partial class Noise
     {
-        public struct Lattice1D : INoise
+        public struct Lattice1D<TG> : INoise where TG : struct, IGradient
         {
             public float4 GetNoise4(float4x3 positions, SmallXxHash4 hash)
             {
                 var x = GetLatticeSpan4(positions.c0);
-                return lerp(hash.Eat(x.P0).Floats01A, hash.Eat(x.P1).Floats01A, x.T) * 2f - 1f;
+                var g = default(TG);
+                return lerp(g.Evaluate(hash.Eat(x.P0), x.G0), g.Evaluate(hash.Eat(x.P1), x.G1), x.T);
             }
         }
 
-        public struct Lattice2D : INoise
+        public struct Lattice2D<TG> : INoise where TG : struct, IGradient
         {
             public float4 GetNoise4(float4x3 positions, SmallXxHash4 hash)
             {
@@ -25,15 +26,16 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                 var z = GetLatticeSpan4(positions.c2);
                 var h0 = hash.Eat(x.P0);
                 var h1 = hash.Eat(x.P1);
+                var g = default(TG);
                 return lerp(
-                    lerp(h0.Eat(z.P0).Floats01A, h0.Eat(z.P1).Floats01A, z.T),
-                    lerp(h1.Eat(z.P0).Floats01A, h1.Eat(z.P1).Floats01A, z.T),
+                    lerp(g.Evaluate(h0.Eat(z.P0), x.G0, z.G0), g.Evaluate(h0.Eat(z.P1), x.G0, z.G1), z.T),
+                    lerp(g.Evaluate(h1.Eat(z.P0), x.G1, z.G0), g.Evaluate(h1.Eat(z.P1), x.G1, z.G1), z.T),
                     x.T
-                ) * 2f - 1f;
+                );
             }
         }
 
-        public struct Lattice3D : INoise
+        public struct Lattice3D<TG> : INoise where TG : struct, IGradient
         {
             public float4 GetNoise4(float4x3 positions, SmallXxHash4 hash)
             {
@@ -50,34 +52,50 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                     h10 = h1.Eat(y.P0),
                     h11 = h1.Eat(y.P1);
 
+                var g = default(TG);
                 return lerp(
                     lerp(
-                        lerp(h00.Eat(z.P0).Floats01A, h00.Eat(z.P1).Floats01A, z.T),
-                        lerp(h01.Eat(z.P0).Floats01A, h01.Eat(z.P1).Floats01A, z.T),
+                        lerp(
+                            g.Evaluate(h00.Eat(z.P0), x.G0, y.G0, z.G0),
+                            g.Evaluate(h00.Eat(z.P1), x.G0, y.G0, z.G1),
+                            z.T),
+                        lerp(
+                            g.Evaluate(h01.Eat(z.P0), x.G0, y.G1, z.G0),
+                            g.Evaluate(h01.Eat(z.P1), x.G0, y.G1, z.G1),
+                            z.T),
                         y.T
                     ),
                     lerp(
-                        lerp(h10.Eat(z.P0).Floats01A, h10.Eat(z.P1).Floats01A, z.T),
-                        lerp(h11.Eat(z.P0).Floats01A, h11.Eat(z.P1).Floats01A, z.T),
+                        lerp(
+                            g.Evaluate(h10.Eat(z.P0), x.G1, y.G0, z.G0),
+                            g.Evaluate(h10.Eat(z.P1), x.G1, y.G0, z.G1),
+                            z.T),
+                        lerp(
+                            g.Evaluate(h11.Eat(z.P0), x.G1, y.G1, z.G0),
+                            g.Evaluate(h11.Eat(z.P1), x.G1, y.G1, z.G1),
+                            z.T),
                         y.T
                     ),
                     x.T
-                ) * 2f - 1f;
+                );
             }
         }
 
         private struct LatticeSpan4
         {
             public int4 P0, P1;
+            public float4 G0, G1;
             public float4 T;
         }
 
-        static LatticeSpan4 GetLatticeSpan4(float4 coordinates)
+        private static LatticeSpan4 GetLatticeSpan4(float4 coordinates)
         {
             var points = floor(coordinates);
             LatticeSpan4 span;
             span.P0 = (int4)points;
             span.P1 = span.P0 + 1;
+            span.G0 = coordinates - span.P0;
+            span.G1 = span.G0 - 1f;
             span.T = coordinates - points;
             span.T = span.T * span.T * span.T * (span.T * (span.T * 6f - 15f) + 10f);
             return span;
