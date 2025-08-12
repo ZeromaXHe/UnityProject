@@ -105,17 +105,11 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
             private float _invResolution;
             private float3x4 _positionTRS, _normalTRS;
 
-            private static float4x3 TransformVectors(float3x4 trs, float4x3 p, float w = 1f) => float4x3(
-                trs.c0.x * p.c0 + trs.c1.x * p.c1 + trs.c2.x * p.c2 + trs.c3.x * w,
-                trs.c0.y * p.c0 + trs.c1.y * p.c1 + trs.c2.y * p.c2 + trs.c3.y * w,
-                trs.c0.z * p.c0 + trs.c1.z * p.c1 + trs.c2.z * p.c2 + trs.c3.z * w
-            );
-
             public void Execute(int i)
             {
                 var p = default(TS).GetPoint4(i, _resolution, _invResolution);
-                _positions[i] = transpose(TransformVectors(_positionTRS, p.Positions));
-                var n = transpose(TransformVectors(_normalTRS, p.Normals, 0f));
+                _positions[i] = transpose(_positionTRS.TransformVectors(p.Positions));
+                var n = transpose(_normalTRS.TransformVectors(p.Normals, 0f));
                 _normals[i] = float3x4(normalize(n.c0), normalize(n.c1), normalize(n.c2), normalize(n.c3));
             }
 
@@ -124,15 +118,14 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                 JobHandle dependency
             )
             {
-                var tim = transpose(inverse(trs));
                 return new Job<TS>
                 {
                     _positions = positions,
                     _normals = normals,
                     _resolution = resolution,
                     _invResolution = 1f / resolution,
-                    _positionTRS = float3x4(trs.c0.xyz, trs.c1.xyz, trs.c2.xyz, trs.c3.xyz),
-                    _normalTRS = float3x4(tim.c0.xyz, tim.c1.xyz, tim.c2.xyz, tim.c3.xyz)
+                    _positionTRS = trs.Get3x4(),
+                    _normalTRS = transpose(inverse(trs)).Get3x4()
                 }.ScheduleParallel(positions.Length, resolution, dependency);
             }
         }
