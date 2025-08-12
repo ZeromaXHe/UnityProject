@@ -13,6 +13,7 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
             float4 Evaluate(SmallXxHash4 hash, float4 x);
             float4 Evaluate(SmallXxHash4 hash, float4 x, float4 y);
             float4 Evaluate(SmallXxHash4 hash, float4 x, float4 y, float4 z);
+            float4 EvaluateAfterInterpolation(float4 value);
         }
 
         public struct Value : IGradient
@@ -20,6 +21,7 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
             public float4 Evaluate(SmallXxHash4 hash, float4 x) => hash.Floats01A * 2f - 1f;
             public float4 Evaluate(SmallXxHash4 hash, float4 x, float4 y) => hash.Floats01A * 2f - 1f;
             public float4 Evaluate(SmallXxHash4 hash, float4 x, float4 y, float4 z) => hash.Floats01A * 2f - 1f;
+            public float4 EvaluateAfterInterpolation(float4 value) => value;
         }
 
         public struct Perlin : IGradient
@@ -35,7 +37,8 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                 return (gx * x + gy * y) * (2f / 0.53528f);
             }
 
-            public float4 Evaluate(SmallXxHash4 hash, float4 x, float4 y, float4 z) {
+            public float4 Evaluate(SmallXxHash4 hash, float4 x, float4 y, float4 z)
+            {
                 float4 gx = hash.Floats01A * 2f - 1f, gy = hash.Floats01D * 2f - 1f;
                 var gz = 1f - abs(gx) - abs(gy);
                 var offset = max(-gz, 0f);
@@ -43,6 +46,23 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                 gy += select(-offset, offset, gy < 0f);
                 return (gx * x + gy * y + gz * z) * (1f / 0.56290f);
             }
+
+            public float4 EvaluateAfterInterpolation(float4 value) => value;
+        }
+
+        public struct Turbulence<TG> : IGradient where TG : struct, IGradient
+        {
+            public float4 Evaluate(SmallXxHash4 hash, float4 x) =>
+                default(TG).Evaluate(hash, x);
+
+            public float4 Evaluate(SmallXxHash4 hash, float4 x, float4 y) =>
+                default(TG).Evaluate(hash, x, y);
+
+            public float4 Evaluate(SmallXxHash4 hash, float4 x, float4 y, float4 z) =>
+                default(TG).Evaluate(hash, x, y, z);
+
+            public float4 EvaluateAfterInterpolation(float4 value) =>
+                abs(default(TG).EvaluateAfterInterpolation(value));
         }
     }
 }

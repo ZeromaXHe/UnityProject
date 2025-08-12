@@ -52,7 +52,8 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
         }
 
         public static implicit operator SmallXxHash4(uint4 accumulator) => new(accumulator);
-        public static implicit operator SmallXxHash4 (SmallXxHash hash) => new(hash.Accumulator);
+        public static implicit operator SmallXxHash4(SmallXxHash hash) => new(hash.Accumulator);
+
         public static implicit operator uint4(SmallXxHash4 hash)
         {
             var avalanche = hash._accumulator;
@@ -64,6 +65,7 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
             return avalanche;
         }
 
+        public static SmallXxHash4 operator +(SmallXxHash4 h, int v) => h._accumulator + (uint)v;
         public static SmallXxHash4 Seed(int4 seed) => (uint4)seed + PrimeE;
         public SmallXxHash4 Eat(int4 data) => RotateLeft(_accumulator + (uint4)data * PrimeC, 17) * PrimeD;
         private static uint4 RotateLeft(uint4 data, int steps) => (data << steps) | (data >> 32 - steps);

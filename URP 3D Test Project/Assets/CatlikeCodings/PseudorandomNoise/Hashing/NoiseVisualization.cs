@@ -11,14 +11,36 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
         private static readonly ScheduleDelegate[,] NoiseJobs =
         {
             {
-                Job<Lattice1D<Perlin>>.ScheduleParallel,
-                Job<Lattice2D<Perlin>>.ScheduleParallel,
-                Job<Lattice3D<Perlin>>.ScheduleParallel
+                Job<Lattice1D<LatticeNormal, Perlin>>.ScheduleParallel,
+                Job<Lattice1D<LatticeTiling, Perlin>>.ScheduleParallel,
+                Job<Lattice2D<LatticeNormal, Perlin>>.ScheduleParallel,
+                Job<Lattice2D<LatticeTiling, Perlin>>.ScheduleParallel,
+                Job<Lattice3D<LatticeNormal, Perlin>>.ScheduleParallel,
+                Job<Lattice3D<LatticeTiling, Perlin>>.ScheduleParallel
             },
             {
-                Job<Lattice1D<Value>>.ScheduleParallel,
-                Job<Lattice2D<Value>>.ScheduleParallel,
-                Job<Lattice3D<Value>>.ScheduleParallel
+                Job<Lattice1D<LatticeNormal, Turbulence<Perlin>>>.ScheduleParallel,
+                Job<Lattice1D<LatticeTiling, Turbulence<Perlin>>>.ScheduleParallel,
+                Job<Lattice2D<LatticeNormal, Turbulence<Perlin>>>.ScheduleParallel,
+                Job<Lattice2D<LatticeTiling, Turbulence<Perlin>>>.ScheduleParallel,
+                Job<Lattice3D<LatticeNormal, Turbulence<Perlin>>>.ScheduleParallel,
+                Job<Lattice3D<LatticeTiling, Turbulence<Perlin>>>.ScheduleParallel
+            },
+            {
+                Job<Lattice1D<LatticeNormal, Value>>.ScheduleParallel,
+                Job<Lattice1D<LatticeTiling, Value>>.ScheduleParallel,
+                Job<Lattice2D<LatticeNormal, Value>>.ScheduleParallel,
+                Job<Lattice2D<LatticeTiling, Value>>.ScheduleParallel,
+                Job<Lattice3D<LatticeNormal, Value>>.ScheduleParallel,
+                Job<Lattice3D<LatticeTiling, Value>>.ScheduleParallel
+            },
+            {
+                Job<Lattice1D<LatticeNormal, Turbulence<Value>>>.ScheduleParallel,
+                Job<Lattice1D<LatticeTiling, Turbulence<Value>>>.ScheduleParallel,
+                Job<Lattice2D<LatticeNormal, Turbulence<Value>>>.ScheduleParallel,
+                Job<Lattice2D<LatticeTiling, Turbulence<Value>>>.ScheduleParallel,
+                Job<Lattice3D<LatticeNormal, Turbulence<Value>>>.ScheduleParallel,
+                Job<Lattice3D<LatticeTiling, Turbulence<Value>>>.ScheduleParallel
             }
         };
 
@@ -27,12 +49,15 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
         private enum NoiseType
         {
             Perlin,
-            Value
+            PerlinTurbulence,
+            Value,
+            ValueTurbulence
         }
 
         [SerializeField] private NoiseType type;
-        [SerializeField] private int seed;
+        [SerializeField] private Settings noiseSettings = Settings.Default;
         [SerializeField, Range(1, 3)] private int dimensions = 3;
+        [SerializeField] private bool tiling;
         [SerializeField] private SpaceTRS domain = new() { scale = 8f };
 
         private NativeArray<float4> _noise;
@@ -54,7 +79,9 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
 
         protected override void UpdateVisualization(NativeArray<float3x4> positions, int resolution, JobHandle handle)
         {
-            NoiseJobs[(int)type, dimensions - 1](positions, _noise, seed, domain, resolution, handle).Complete();
+            NoiseJobs[(int)type, 2 * dimensions - (tiling ? 1 : 2)](
+                positions, _noise, noiseSettings, domain, resolution, handle
+            ).Complete();
             _noiseBuffer.SetData(_noise.Reinterpret<float>(4 * 4));
         }
     }
