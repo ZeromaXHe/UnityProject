@@ -15,7 +15,7 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                 var l = default(TL);
                 var x = l.GetLatticeSpan4(positions.c0, frequency);
                 var g = default(TG);
-                return g.EvaluateAfterInterpolation(lerp(
+                return g.EvaluateCombined(lerp(
                     g.Evaluate(hash.Eat(x.P0), x.G0), g.Evaluate(hash.Eat(x.P1), x.G1), x.T));
             }
         }
@@ -30,7 +30,7 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                 var h0 = hash.Eat(x.P0);
                 var h1 = hash.Eat(x.P1);
                 var g = default(TG);
-                return g.EvaluateAfterInterpolation(lerp(
+                return g.EvaluateCombined(lerp(
                     lerp(g.Evaluate(h0.Eat(z.P0), x.G0, z.G0), g.Evaluate(h0.Eat(z.P1), x.G0, z.G1), z.T),
                     lerp(g.Evaluate(h1.Eat(z.P0), x.G1, z.G0), g.Evaluate(h1.Eat(z.P1), x.G1, z.G1), z.T),
                     x.T
@@ -57,7 +57,7 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                     h11 = h1.Eat(y.P1);
 
                 var g = default(TG);
-                return g.EvaluateAfterInterpolation(lerp(
+                return g.EvaluateCombined(lerp(
                     lerp(
                         lerp(
                             g.Evaluate(h00.Eat(z.P0), x.G0, y.G0, z.G0),
