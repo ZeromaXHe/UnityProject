@@ -14,13 +14,19 @@ namespace CatlikeCodings.ProceduralMeshes
         private static readonly MeshJobScheduleDelegate[] Jobs =
         {
             MeshJob<SquareGrid, SingleStream>.ScheduleParallel,
-            MeshJob<SharedSquareGrid, SingleStream>.ScheduleParallel
+            MeshJob<SharedSquareGrid, SingleStream>.ScheduleParallel,
+            MeshJob<SharedTriangleGrid, SingleStream>.ScheduleParallel,
+            MeshJob<PointyHexagonGrid, SingleStream>.ScheduleParallel,
+            MeshJob<FlatHexagonGrid, SingleStream>.ScheduleParallel
         };
 
         private enum MeshType
         {
             SquareGrid,
-            SharedSquareGrid
+            SharedSquareGrid,
+            SharedTriangleGrid,
+            PointyHexagonGrid,
+            FlatHexagonGrid
         }
 
         [SerializeField] private MeshType meshType;
