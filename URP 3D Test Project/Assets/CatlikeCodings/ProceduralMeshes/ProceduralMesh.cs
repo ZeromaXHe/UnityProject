@@ -11,7 +11,20 @@ namespace CatlikeCodings.ProceduralMeshes
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
     public class ProceduralMesh : MonoBehaviour
     {
-        [SerializeField, Range(1, 10)] private int resolution = 1;
+        private static readonly MeshJobScheduleDelegate[] Jobs =
+        {
+            MeshJob<SquareGrid, SingleStream>.ScheduleParallel,
+            MeshJob<SharedSquareGrid, SingleStream>.ScheduleParallel
+        };
+
+        private enum MeshType
+        {
+            SquareGrid,
+            SharedSquareGrid
+        }
+
+        [SerializeField] private MeshType meshType;
+        [SerializeField, Range(1, 50)] private int resolution = 1;
         private Mesh _mesh;
 
         private void Awake()
@@ -35,7 +48,7 @@ namespace CatlikeCodings.ProceduralMeshes
         {
             var meshDataArray = Mesh.AllocateWritableMeshData(1);
             var meshData = meshDataArray[0];
-            MeshJob<SquareGrid, MultiStream>.ScheduleParallel(_mesh, meshData, resolution, default).Complete();
+            Jobs[(int)meshType](_mesh, meshData, resolution, default).Complete();
             Mesh.ApplyAndDisposeWritableMeshData(meshDataArray, _mesh);
         }
     }
