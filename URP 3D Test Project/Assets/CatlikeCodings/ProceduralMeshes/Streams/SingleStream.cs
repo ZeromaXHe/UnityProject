@@ -14,7 +14,7 @@ namespace CatlikeCodings.ProceduralMeshes.Streams
     public struct SingleStream : IMeshStreams
     {
         [StructLayout(LayoutKind.Sequential)]
-        private struct Stream0
+        public struct Stream0
         {
             public float3 position, normal;
             public float4 tangent;
