@@ -21,6 +21,7 @@ namespace CatlikeCodings.ProceduralMeshes
             MeshJob<FlatHexagonGrid, SingleStream>.ScheduleParallel,
             MeshJob<CubeSphere, SingleStream>.ScheduleParallel,
             MeshJob<SharedCubeSphere, PositionStream>.ScheduleParallel,
+            MeshJob<Octasphere, SingleStream>.ScheduleParallel,
             MeshJob<UvSphere, SingleStream>.ScheduleParallel
         };
 
@@ -33,6 +34,7 @@ namespace CatlikeCodings.ProceduralMeshes
             FlatHexagonGrid,
             CubeSphere,
             SharedCubeSphere,
+            Octasphere,
             UvSphere
         }
 
