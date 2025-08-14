@@ -460,7 +460,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   meshOptimization: 0
-  meshType: 7
+  meshType: 8
   resolution: 10
   gizmos: -1
   material: 0
