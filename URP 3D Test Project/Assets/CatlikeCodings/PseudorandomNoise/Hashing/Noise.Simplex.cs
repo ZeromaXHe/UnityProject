@@ -10,26 +10,32 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
     {
         public struct Simplex1D<TG> : INoise where TG : struct, IGradient
         {
-            public float4 GetNoise4(float4x3 positions, SmallXxHash4 hash, int frequency)
+            public Sample4 GetNoise4(float4x3 positions, SmallXxHash4 hash, int frequency)
             {
                 positions *= frequency;
                 int4 x0 = (int4)floor(positions.c0), x1 = x0 + 1;
-                return default(TG).EvaluateCombined(
+                var s = default(TG).EvaluateCombined(
                     Kernel(hash.Eat(x0), x0, positions) + Kernel(hash.Eat(x1), x1, positions));
+                s.Dx *= frequency;
+                return s;
             }
 
-            private static float4 Kernel(SmallXxHash4 hash, float4 lx, float4x3 positions)
+            private static Sample4 Kernel(SmallXxHash4 hash, float4 lx, float4x3 positions)
             {
                 var x = positions.c0 - lx;
                 var f = 1f - x * x;
-                f = f * f * f;
-                return f * default(TG).Evaluate(hash, x);
+                var g = default(TG).Evaluate(hash, x);
+                return new Sample4
+                {
+                    V = f * g.V,
+                    Dx = f * g.Dx - 6f * x * g.V
+                } * f * f;
             }
         }
 
         public struct Simplex2D<TG> : INoise where TG : struct, IGradient
         {
-            public float4 GetNoise4(float4x3 positions, SmallXxHash4 hash, int frequency)
+            public Sample4 GetNoise4(float4x3 positions, SmallXxHash4 hash, int frequency)
             {
                 positions *= frequency * (1f / sqrt(3f));
                 var skew = (positions.c0 + positions.c2) * ((sqrt(3f) - 1f) / 2f);
@@ -43,26 +49,34 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                 int4 xC = select(x0, x1, xGz), zC = select(z1, z0, xGz);
                 SmallXxHash4 h0 = hash.Eat(x0), h1 = hash.Eat(x1), hC = SmallXxHash4.Select(h0, h1, xGz);
 
-                return default(TG).EvaluateCombined(
+                var s = default(TG).EvaluateCombined(
                     Kernel(h0.Eat(z0), x0, z0, positions) +
                     Kernel(h1.Eat(z1), x1, z1, positions) +
                     Kernel(hC.Eat(zC), xC, zC, positions)
                 );
+                s.Dx *= frequency * (1f / sqrt(3f));
+                s.Dz *= frequency * (1f / sqrt(3f));
+                return s;
             }
 
-            private static float4 Kernel(SmallXxHash4 hash, float4 lx, float4 lz, float4x3 positions)
+            private static Sample4 Kernel(SmallXxHash4 hash, float4 lx, float4 lz, float4x3 positions)
             {
                 var unskew = (lx + lz) * ((3f - sqrt(3f)) / 6f);
                 float4 x = positions.c0 - lx + unskew, z = positions.c2 - lz + unskew;
                 var f = 0.5f - x * x - z * z;
-                f = f * f * f * 8f;
-                return max(0f, f) * default(TG).Evaluate(hash, x, z);
+                var g = default(TG).Evaluate(hash, x, z);
+                return new Sample4
+                {
+                    V = f * g.V,
+                    Dx = f * g.Dx - 6f * x * g.V,
+                    Dz = f * g.Dz - 6f * z * g.V
+                } * f * f * select(0f, 8f, f >= 0f);
             }
         }
 
         public struct Simplex3D<TG> : INoise where TG : struct, IGradient
         {
-            public float4 GetNoise4(float4x3 positions, SmallXxHash4 hash, int frequency)
+            public Sample4 GetNoise4(float4x3 positions, SmallXxHash4 hash, int frequency)
             {
                 positions *= frequency * 0.6f;
                 var skew = (positions.c0 + positions.c1 + positions.c2) * (1f / 3f);
@@ -101,15 +115,19 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                     hA = SmallXxHash4.Select(h0, h1, xA),
                     hB = SmallXxHash4.Select(h0, h1, xB);
 
-                return default(TG).EvaluateCombined(
+                var s = default(TG).EvaluateCombined(
                     Kernel(h0.Eat(y0).Eat(z0), x0, y0, z0, positions) +
                     Kernel(h1.Eat(y1).Eat(z1), x1, y1, z1, positions) +
                     Kernel(hA.Eat(yCA).Eat(zCA), xCA, yCA, zCA, positions) +
                     Kernel(hB.Eat(yCB).Eat(zCB), xCB, yCB, zCB, positions)
                 );
+                s.Dx *= frequency * 0.6f;
+                s.Dy *= frequency * 0.6f;
+                s.Dz *= frequency * 0.6f;
+                return s;
             }
 
-            private static float4 Kernel(SmallXxHash4 hash, float4 lx, float4 ly, float4 lz, float4x3 positions)
+            private static Sample4 Kernel(SmallXxHash4 hash, float4 lx, float4 ly, float4 lz, float4x3 positions)
             {
                 var unskew = (lx + ly + lz) * (1f / 6f);
                 float4
@@ -117,8 +135,14 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                     y = positions.c1 - ly + unskew,
                     z = positions.c2 - lz + unskew;
                 var f = 0.5f - x * x - y * y - z * z;
-                f = f * f * f * 8f;
-                return max(0f, f) * default(TG).Evaluate(hash, x, y, z);
+                var g = default(TG).Evaluate(hash, x, y, z);
+                return new Sample4
+                {
+                    V = f * g.V,
+                    Dx = f * g.Dx - 6f * x * g.V,
+                    Dy = f * g.Dy - 6f * y * g.V,
+                    Dz = f * g.Dz - 6f * z * g.V
+                } * f * f * select(0f, 8f, f >= 0f);
             }
         }
     }

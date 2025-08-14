@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -33,7 +34,26 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
 
         public interface INoise
         {
-            float4 GetNoise4(float4x3 positions, SmallXxHash4 hash, int frequency);
+            Sample4 GetNoise4(float4x3 positions, SmallXxHash4 hash, int frequency);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Sample4 GetFractalNoise<TN>(float4x3 position, Settings settings) where TN : struct, INoise
+        {
+            var hash = SmallXxHash4.Seed(settings.seed);
+            var frequency = settings.frequency;
+            float amplitude = 1f, amplitudeSum = 0f;
+            Sample4 sum = default;
+
+            for (var o = 0; o < settings.octaves; o++)
+            {
+                sum += amplitude * default(TN).GetNoise4(position, hash + o, frequency);
+                amplitudeSum += amplitude;
+                frequency *= settings.lacunarity;
+                amplitude *= settings.persistence;
+            }
+
+            return sum / amplitudeSum;
         }
 
         [BurstCompile(FloatPrecision.Standard, FloatMode.Fast, CompileSynchronously = true)]
@@ -44,24 +64,8 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
             private Settings _settings;
             private float3x4 _domainTRS;
 
-            public void Execute(int i)
-            {
-                var position = _domainTRS.TransformVectors(transpose(_positions[i]));
-                var hash = SmallXxHash4.Seed(_settings.seed);
-                var frequency = _settings.frequency;
-                float amplitude = 1f, amplitudeSum = 0f;
-                float4 sum = 0f;
-
-                for (var o = 0; o < _settings.octaves; o++)
-                {
-                    sum += amplitude * default(TN).GetNoise4(position, hash + o, frequency);
-                    amplitudeSum += amplitude;
-                    frequency *= _settings.lacunarity;
-                    amplitude *= _settings.persistence;
-                }
-
-                _noise[i] = sum / amplitudeSum;
-            }
+            public void Execute(int i) => _noise[i] =
+                GetFractalNoise<TN>(_domainTRS.TransformVectors(transpose(_positions[i])), _settings).V;
 
             public static JobHandle ScheduleParallel(NativeArray<float3x4> positions, NativeArray<float4> noise,
                 Settings settings, SpaceTRS domainTRS, int resolution, JobHandle dependency) =>

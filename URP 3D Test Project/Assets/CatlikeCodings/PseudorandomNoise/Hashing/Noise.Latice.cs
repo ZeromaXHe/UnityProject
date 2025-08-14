@@ -10,19 +10,19 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
     {
         public struct Lattice1D<TL, TG> : INoise where TL : struct, ILattice where TG : struct, IGradient
         {
-            public float4 GetNoise4(float4x3 positions, SmallXxHash4 hash, int frequency)
+            public Sample4 GetNoise4(float4x3 positions, SmallXxHash4 hash, int frequency)
             {
                 var l = default(TL);
                 var x = l.GetLatticeSpan4(positions.c0, frequency);
                 var g = default(TG);
                 return g.EvaluateCombined(lerp(
-                    g.Evaluate(hash.Eat(x.P0), x.G0), g.Evaluate(hash.Eat(x.P1), x.G1), x.T));
+                    g.Evaluate(hash.Eat(x.P0), x.G0).V, g.Evaluate(hash.Eat(x.P1), x.G1).V, x.T));
             }
         }
 
         public struct Lattice2D<TL, TG> : INoise where TL : struct, ILattice where TG : struct, IGradient
         {
-            public float4 GetNoise4(float4x3 positions, SmallXxHash4 hash, int frequency)
+            public Sample4 GetNoise4(float4x3 positions, SmallXxHash4 hash, int frequency)
             {
                 var l = default(TL);
                 var x = l.GetLatticeSpan4(positions.c0, frequency);
@@ -31,8 +31,8 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                 var h1 = hash.Eat(x.P1);
                 var g = default(TG);
                 return g.EvaluateCombined(lerp(
-                    lerp(g.Evaluate(h0.Eat(z.P0), x.G0, z.G0), g.Evaluate(h0.Eat(z.P1), x.G0, z.G1), z.T),
-                    lerp(g.Evaluate(h1.Eat(z.P0), x.G1, z.G0), g.Evaluate(h1.Eat(z.P1), x.G1, z.G1), z.T),
+                    lerp(g.Evaluate(h0.Eat(z.P0), x.G0, z.G0).V, g.Evaluate(h0.Eat(z.P1), x.G0, z.G1).V, z.T),
+                    lerp(g.Evaluate(h1.Eat(z.P0), x.G1, z.G0).V, g.Evaluate(h1.Eat(z.P1), x.G1, z.G1).V, z.T),
                     x.T
                 ));
             }
@@ -40,7 +40,7 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
 
         public struct Lattice3D<TL, TG> : INoise where TL : struct, ILattice where TG : struct, IGradient
         {
-            public float4 GetNoise4(float4x3 positions, SmallXxHash4 hash, int frequency)
+            public Sample4 GetNoise4(float4x3 positions, SmallXxHash4 hash, int frequency)
             {
                 var l = default(TL);
                 LatticeSpan4
@@ -60,23 +60,23 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                 return g.EvaluateCombined(lerp(
                     lerp(
                         lerp(
-                            g.Evaluate(h00.Eat(z.P0), x.G0, y.G0, z.G0),
-                            g.Evaluate(h00.Eat(z.P1), x.G0, y.G0, z.G1),
+                            g.Evaluate(h00.Eat(z.P0), x.G0, y.G0, z.G0).V,
+                            g.Evaluate(h00.Eat(z.P1), x.G0, y.G0, z.G1).V,
                             z.T),
                         lerp(
-                            g.Evaluate(h01.Eat(z.P0), x.G0, y.G1, z.G0),
-                            g.Evaluate(h01.Eat(z.P1), x.G0, y.G1, z.G1),
+                            g.Evaluate(h01.Eat(z.P0), x.G0, y.G1, z.G0).V,
+                            g.Evaluate(h01.Eat(z.P1), x.G0, y.G1, z.G1).V,
                             z.T),
                         y.T
                     ),
                     lerp(
                         lerp(
-                            g.Evaluate(h10.Eat(z.P0), x.G1, y.G0, z.G0),
-                            g.Evaluate(h10.Eat(z.P1), x.G1, y.G0, z.G1),
+                            g.Evaluate(h10.Eat(z.P0), x.G1, y.G0, z.G0).V,
+                            g.Evaluate(h10.Eat(z.P1), x.G1, y.G0, z.G1).V,
                             z.T),
                         lerp(
-                            g.Evaluate(h11.Eat(z.P0), x.G1, y.G1, z.G0),
-                            g.Evaluate(h11.Eat(z.P1), x.G1, y.G1, z.G1),
+                            g.Evaluate(h11.Eat(z.P0), x.G1, y.G1, z.G0).V,
+                            g.Evaluate(h11.Eat(z.P1), x.G1, y.G1, z.G1).V,
                             z.T),
                         y.T
                     ),

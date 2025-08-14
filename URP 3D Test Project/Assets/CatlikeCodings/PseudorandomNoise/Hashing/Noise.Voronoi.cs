@@ -21,7 +21,7 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
             where TD : struct, IVoronoiDistance
             where TF : struct, IVoronoiFunction
         {
-            public float4 GetNoise4(float4x3 positions, SmallXxHash4 hash, int frequency)
+            public Sample4 GetNoise4(float4x3 positions, SmallXxHash4 hash, int frequency)
             {
                 var l = default(TL);
                 var d = default(TD);
@@ -42,7 +42,7 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
             where TD : struct, IVoronoiDistance
             where TF : struct, IVoronoiFunction
         {
-            public float4 GetNoise4(float4x3 positions, SmallXxHash4 hash, int frequency)
+            public Sample4 GetNoise4(float4x3 positions, SmallXxHash4 hash, int frequency)
             {
                 var l = default(TL);
                 var d = default(TD);
@@ -76,7 +76,7 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
             where TD : struct, IVoronoiDistance
             where TF : struct, IVoronoiFunction
         {
-            public float4 GetNoise4(float4x3 positions, SmallXxHash4 hash, int frequency)
+            public Sample4 GetNoise4(float4x3 positions, SmallXxHash4 hash, int frequency)
             {
                 var l = default(TL);
                 var d = default(TD);
