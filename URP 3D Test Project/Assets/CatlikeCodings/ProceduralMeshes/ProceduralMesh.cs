@@ -2,6 +2,7 @@ using System;
 using CatlikeCodings.ProceduralMeshes.Generators;
 using CatlikeCodings.ProceduralMeshes.Streams;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace CatlikeCodings.ProceduralMeshes
 {
@@ -19,6 +20,7 @@ namespace CatlikeCodings.ProceduralMeshes
             MeshJob<PointyHexagonGrid, SingleStream>.ScheduleParallel,
             MeshJob<FlatHexagonGrid, SingleStream>.ScheduleParallel,
             MeshJob<CubeSphere, SingleStream>.ScheduleParallel,
+            MeshJob<SharedCubeSphere, PositionStream>.ScheduleParallel,
             MeshJob<UvSphere, SingleStream>.ScheduleParallel
         };
 
@@ -30,6 +32,7 @@ namespace CatlikeCodings.ProceduralMeshes
             PointyHexagonGrid,
             FlatHexagonGrid,
             CubeSphere,
+            SharedCubeSphere,
             UvSphere
         }
 
@@ -39,7 +42,8 @@ namespace CatlikeCodings.ProceduralMeshes
             Nothing = 0,
             Vertices = 1,
             Normals = 0b10,
-            Tangents = 0b100
+            Tangents = 0b100,
+            Triangles = 0b1000
         }
 
         private enum MaterialMode
@@ -50,14 +54,24 @@ namespace CatlikeCodings.ProceduralMeshes
             CubeMap
         }
 
+        [Flags]
+        private enum MeshOptimizationMode
+        {
+            Nothing = 0,
+            ReorderIndices = 1,
+            ReorderVertices = 0b10
+        }
+
+        [SerializeField] private MeshOptimizationMode meshOptimization;
         [SerializeField] private MeshType meshType;
         [SerializeField, Range(1, 50)] private int resolution = 1;
         [SerializeField] private GizmoMode gizmos;
         [SerializeField] private MaterialMode material;
         [SerializeField] private Material[] materials;
         private Mesh _mesh;
-        private Vector3[] _vertices, _normals;
-        private Vector4[] _tangents;
+        [NonSerialized] private Vector3[] _vertices, _normals;
+        [NonSerialized] private Vector4[] _tangents;
+        [NonSerialized] private int[] _triangles;
 
         private void Awake()
         {
@@ -80,6 +94,7 @@ namespace CatlikeCodings.ProceduralMeshes
             var drawVertices = (gizmos & GizmoMode.Vertices) != 0;
             var drawNormals = (gizmos & GizmoMode.Normals) != 0;
             var drawTangents = (gizmos & GizmoMode.Tangents) != 0;
+            var drawTriangles = (gizmos & GizmoMode.Triangles) != 0;
             if (_vertices == null)
             {
                 _vertices = _mesh.vertices;
@@ -87,12 +102,25 @@ namespace CatlikeCodings.ProceduralMeshes
 
             if (drawNormals && _normals == null)
             {
-                _normals = _mesh.normals;
+                drawNormals = _mesh.HasVertexAttribute(VertexAttribute.Normal);
+                if (drawNormals)
+                {
+                    _normals = _mesh.normals;
+                }
             }
 
             if (drawTangents && _tangents == null)
             {
-                _tangents = _mesh.tangents;
+                drawTangents = _mesh.HasVertexAttribute(VertexAttribute.Tangent);
+                if (drawTangents)
+                {
+                    _tangents = _mesh.tangents;
+                }
+            }
+
+            if (drawTriangles && _triangles == null)
+            {
+                _triangles = _mesh.triangles;
             }
 
             var t = transform;
@@ -117,6 +145,24 @@ namespace CatlikeCodings.ProceduralMeshes
                     Gizmos.DrawRay(position, t.TransformDirection(_tangents[i]) * 0.2f);
                 }
             }
+
+            if (drawTriangles)
+            {
+                var colorStep = 1f / (_triangles.Length - 3);
+                for (var i = 0; i < _triangles.Length; i += 3)
+                {
+                    var c = i * colorStep;
+                    Gizmos.color = new Color(c, 0f, c);
+                    Gizmos.DrawSphere(
+                        t.TransformPoint((
+                            _vertices[_triangles[i]] +
+                            _vertices[_triangles[i + 1]] +
+                            _vertices[_triangles[i + 2]]
+                        ) * (1f / 3f)),
+                        0.02f
+                    );
+                }
+            }
         }
 
         private void Update()
@@ -126,6 +172,7 @@ namespace CatlikeCodings.ProceduralMeshes
             _vertices = null;
             _normals = null;
             _tangents = null;
+            _triangles = null;
             GetComponent<MeshRenderer>().material = materials[(int)material];
         }
 
@@ -135,6 +182,18 @@ namespace CatlikeCodings.ProceduralMeshes
             var meshData = meshDataArray[0];
             Jobs[(int)meshType](_mesh, meshData, resolution, default).Complete();
             Mesh.ApplyAndDisposeWritableMeshData(meshDataArray, _mesh);
+            if (meshOptimization == MeshOptimizationMode.ReorderIndices)
+            {
+                _mesh.OptimizeIndexBuffers();
+            }
+            else if (meshOptimization == MeshOptimizationMode.ReorderVertices)
+            {
+                _mesh.OptimizeReorderVertexBuffer();
+            }
+            else if (meshOptimization != MeshOptimizationMode.Nothing)
+            {
+                _mesh.Optimize();
+            }
         }
     }
 }
