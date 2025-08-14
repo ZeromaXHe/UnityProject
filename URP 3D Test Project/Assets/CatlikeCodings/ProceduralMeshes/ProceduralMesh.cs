@@ -21,6 +21,8 @@ namespace CatlikeCodings.ProceduralMeshes
             MeshJob<FlatHexagonGrid, SingleStream>.ScheduleParallel,
             MeshJob<CubeSphere, SingleStream>.ScheduleParallel,
             MeshJob<SharedCubeSphere, PositionStream>.ScheduleParallel,
+            MeshJob<Icosphere, PositionStream>.ScheduleParallel,
+            MeshJob<GeoIcosphere, PositionStream>.ScheduleParallel,
             MeshJob<Octasphere, SingleStream>.ScheduleParallel,
             MeshJob<GeoOctasphere, SingleStream>.ScheduleParallel,
             MeshJob<UvSphere, SingleStream>.ScheduleParallel
@@ -35,6 +37,8 @@ namespace CatlikeCodings.ProceduralMeshes
             FlatHexagonGrid,
             CubeSphere,
             SharedCubeSphere,
+            Icosphere,
+            GeoIcosphere,
             Octasphere,
             GeoOctasphere,
             UvSphere
