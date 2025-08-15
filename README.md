@@ -24,6 +24,21 @@
 
 “活动输入处理” 改为 “**输入系统包（新）**”
 
+## 关闭自动编译
+
+Unity 中修改：
+
+1. 修改“Edit 编辑 -> Preferences 首选项 -> Asset Pipeline 资产管线 -> 自动刷新”从“已启用”改为“已禁用”
+2. 修改“Edit 编辑 -> Preferences 首选项 -> General 常规 -> Script Changes While Playing 播放时脚本更改”从“Recompile And Continue Playing 重新编译并继续播放”改为：“Recompile After Finished Playing 停止播放后再编译”
+
+Rider 中修改：
+
+- “文件 -> 设置 -> 语言和框架 -> Unity 引擎”中关闭“在 Unity 中自动刷新资源”
+
+（这个自动编译卡的要死，也不知道是不是用了 Burst 的原因。不仅仅是卡住 Unity，还要把我其他窗口：Rider、网页浏览器、Typora 卡住……就很烦。切换一下窗口就得卡死好几秒，甚至十几秒。不知道怎么这么恶心——写个 C# 堪比 Unreal C++ 了。当然准确来说，和 Unreal C++ 内存不够时候动不动几百秒还是没法比……）
+
+关闭以后需要在 Unity 内使用 `Ctrl + R` 重新编译
+
 ## 笔记速记
 
 ### 编辑器

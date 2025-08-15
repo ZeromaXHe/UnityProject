@@ -147,6 +147,80 @@ namespace CatlikeCodings.PseudorandomSurfaces
             }
         };
 
+        private static readonly FlowJobScheduleDelegate[,] FlowJobs =
+        {
+            {
+                FlowJob<Lattice1D<LatticeNormal, Perlin>>.ScheduleParallel,
+                FlowJob<Lattice2D<LatticeNormal, Perlin>>.ScheduleParallel,
+                FlowJob<Lattice3D<LatticeNormal, Perlin>>.ScheduleParallel
+            },
+            {
+                FlowJob<Lattice1D<LatticeNormal, Smoothstep<Turbulence<Perlin>>>>.ScheduleParallel,
+                FlowJob<Lattice2D<LatticeNormal, Smoothstep<Turbulence<Perlin>>>>.ScheduleParallel,
+                FlowJob<Lattice3D<LatticeNormal, Smoothstep<Turbulence<Perlin>>>>.ScheduleParallel
+            },
+            {
+                FlowJob<Lattice1D<LatticeNormal, Value>>.ScheduleParallel,
+                FlowJob<Lattice2D<LatticeNormal, Value>>.ScheduleParallel,
+                FlowJob<Lattice3D<LatticeNormal, Value>>.ScheduleParallel
+            },
+            {
+                FlowJob<Simplex1D<Simplex>>.ScheduleParallel,
+                FlowJob<Simplex2D<Simplex>>.ScheduleParallel,
+                FlowJob<Simplex3D<Simplex>>.ScheduleParallel
+            },
+            {
+                FlowJob<Simplex1D<Smoothstep<Turbulence<Simplex>>>>.ScheduleParallel,
+                FlowJob<Simplex2D<Smoothstep<Turbulence<Simplex>>>>.ScheduleParallel,
+                FlowJob<Simplex3D<Smoothstep<Turbulence<Simplex>>>>.ScheduleParallel
+            },
+            {
+                FlowJob<Simplex1D<Value>>.ScheduleParallel,
+                FlowJob<Simplex2D<Value>>.ScheduleParallel,
+                FlowJob<Simplex3D<Value>>.ScheduleParallel
+            },
+            {
+                FlowJob<Voronoi1D<LatticeNormal, Worley, F1>>.ScheduleParallel,
+                FlowJob<Voronoi2D<LatticeNormal, Worley, F1>>.ScheduleParallel,
+                FlowJob<Voronoi3D<LatticeNormal, Worley, F1>>.ScheduleParallel
+            },
+            {
+                FlowJob<Voronoi1D<LatticeNormal, Worley, F2>>.ScheduleParallel,
+                FlowJob<Voronoi2D<LatticeNormal, Worley, F2>>.ScheduleParallel,
+                FlowJob<Voronoi3D<LatticeNormal, Worley, F2>>.ScheduleParallel
+            },
+            {
+                FlowJob<Voronoi1D<LatticeNormal, Worley, F2MinusF1>>.ScheduleParallel,
+                FlowJob<Voronoi2D<LatticeNormal, Worley, F2MinusF1>>.ScheduleParallel,
+                FlowJob<Voronoi3D<LatticeNormal, Worley, F2MinusF1>>.ScheduleParallel
+            },
+            {
+                FlowJob<Voronoi1D<LatticeNormal, SmoothWorley, F1>>.ScheduleParallel,
+                FlowJob<Voronoi2D<LatticeNormal, SmoothWorley, F1>>.ScheduleParallel,
+                FlowJob<Voronoi3D<LatticeNormal, SmoothWorley, F1>>.ScheduleParallel
+            },
+            {
+                FlowJob<Voronoi1D<LatticeNormal, SmoothWorley, F2>>.ScheduleParallel,
+                FlowJob<Voronoi2D<LatticeNormal, SmoothWorley, F2>>.ScheduleParallel,
+                FlowJob<Voronoi3D<LatticeNormal, SmoothWorley, F2>>.ScheduleParallel
+            },
+            {
+                FlowJob<Voronoi1D<LatticeNormal, Worley, F1>>.ScheduleParallel,
+                FlowJob<Voronoi2D<LatticeNormal, Chebyshev, F1>>.ScheduleParallel,
+                FlowJob<Voronoi3D<LatticeNormal, Chebyshev, F1>>.ScheduleParallel
+            },
+            {
+                FlowJob<Voronoi1D<LatticeNormal, Worley, F2>>.ScheduleParallel,
+                FlowJob<Voronoi2D<LatticeNormal, Chebyshev, F2>>.ScheduleParallel,
+                FlowJob<Voronoi3D<LatticeNormal, Chebyshev, F2>>.ScheduleParallel
+            },
+            {
+                FlowJob<Voronoi1D<LatticeNormal, Worley, F2MinusF1>>.ScheduleParallel,
+                FlowJob<Voronoi2D<LatticeNormal, Chebyshev, F2MinusF1>>.ScheduleParallel,
+                FlowJob<Voronoi3D<LatticeNormal, Chebyshev, F2MinusF1>>.ScheduleParallel
+            }
+        };
+
         private static readonly int MaterialIsPlaneId = Shader.PropertyToID("_IsPlane");
 
         private enum NoiseType
@@ -167,6 +241,13 @@ namespace CatlikeCodings.PseudorandomSurfaces
             VoronoiChebyshevF2MinusF1
         }
 
+        private enum FlowMode
+        {
+            Off,
+            Curl,
+            Downhill
+        }
+
         [SerializeField] private NoiseType noiseType;
         [SerializeField, Range(1, 3)] private int dimensions = 1;
         [SerializeField] private MeshOptimizationMode meshOptimization;
@@ -176,6 +257,7 @@ namespace CatlikeCodings.PseudorandomSurfaces
         [SerializeField, Range(-1f, 1f)] private float displacement = 0.5f;
         [SerializeField] private Settings noiseSettings = Settings.Default;
         [SerializeField] private SpaceTRS domain = new() { scale = 1f };
+        [SerializeField] private FlowMode flowMode;
         [SerializeField] private GizmoMode gizmos;
         [SerializeField] private MaterialMode material;
         [SerializeField] private Material[] materials;
@@ -183,6 +265,8 @@ namespace CatlikeCodings.PseudorandomSurfaces
         [NonSerialized] private Vector3[] _vertices, _normals;
         [NonSerialized] private Vector4[] _tangents;
         [NonSerialized] private int[] _triangles;
+        private ParticleSystem _flowSystem;
+        private bool IsPlane => meshType < MeshType.CubeSphere;
 
         private void Awake()
         {
@@ -192,6 +276,7 @@ namespace CatlikeCodings.PseudorandomSurfaces
             };
             GetComponent<MeshFilter>().mesh = _mesh;
             materials[(int)displacement] = new Material(materials[(int)displacement]);
+            _flowSystem = GetComponent<ParticleSystem>();
         }
 
         private void OnValidate() => enabled = true;
@@ -277,6 +362,15 @@ namespace CatlikeCodings.PseudorandomSurfaces
             }
         }
 
+        private void OnParticleUpdateJobScheduled()
+        {
+            if (flowMode != FlowMode.Off)
+            {
+                FlowJobs[(int)noiseType, dimensions - 1](_flowSystem, noiseSettings, domain, displacement,
+                    IsPlane, flowMode == FlowMode.Curl);
+            }
+        }
+
         private void Update()
         {
             GenerateMesh();
@@ -288,10 +382,20 @@ namespace CatlikeCodings.PseudorandomSurfaces
             if (material == MaterialMode.Displacement)
             {
                 materials[(int)MaterialMode.Displacement]
-                    .SetFloat(MaterialIsPlaneId, meshType < MeshType.CubeSphere ? 1f : 0f);
+                    .SetFloat(MaterialIsPlaneId, IsPlane ? 1f : 0f);
             }
 
             GetComponent<MeshRenderer>().material = materials[(int)material];
+            if (flowMode == FlowMode.Off)
+            {
+                _flowSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            }
+            else
+            {
+                _flowSystem.Play();
+                var shapeModule = _flowSystem.shape;
+                shapeModule.shapeType = IsPlane ? ParticleSystemShapeType.Rectangle : ParticleSystemShapeType.Sphere;
+            }
         }
 
         private void GenerateMesh()
@@ -299,8 +403,7 @@ namespace CatlikeCodings.PseudorandomSurfaces
             var meshDataArray = Mesh.AllocateWritableMeshData(1);
             var meshData = meshDataArray[0];
             SurfaceJobs[(int)noiseType, dimensions - 1](meshData, resolution, noiseSettings, domain, displacement,
-                    meshType < MeshType.CubeSphere,
-                    MeshJobs[(int)meshType](_mesh, meshData, resolution, default,
+                    IsPlane, MeshJobs[(int)meshType](_mesh, meshData, resolution, default,
                         Vector3.one * Mathf.Abs(displacement), true))
                 .Complete();
             Mesh.ApplyAndDisposeWritableMeshData(meshDataArray, _mesh);
