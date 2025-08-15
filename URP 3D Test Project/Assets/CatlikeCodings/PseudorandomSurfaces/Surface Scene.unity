@@ -248,7 +248,7 @@ MonoBehaviour:
   noiseType: 10
   dimensions: 3
   meshOptimization: 0
-  meshType: 1
+  meshType: 8
   recalculateNormals: 1
   recalculateTangents: 1
   resolution: 40
@@ -272,7 +272,7 @@ MonoBehaviour:
       x: 1
       y: 1
       z: 1
-  gizmos: 1
+  gizmos: 0
   material: 0
   materials:
   - {fileID: 2100000, guid: e5e1384f0385c7d46ba18e89f19a36fd, type: 2}

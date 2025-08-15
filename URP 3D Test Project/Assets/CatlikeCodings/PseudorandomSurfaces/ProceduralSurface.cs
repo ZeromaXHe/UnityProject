@@ -23,9 +23,9 @@ namespace CatlikeCodings.PseudorandomSurfaces
             MeshJob<PointyHexagonGrid, SingleStream>.ScheduleParallel,
             MeshJob<FlatHexagonGrid, SingleStream>.ScheduleParallel,
             MeshJob<CubeSphere, SingleStream>.ScheduleParallel,
-            MeshJob<SharedCubeSphere, PositionStream>.ScheduleParallel,
-            MeshJob<Icosphere, PositionStream>.ScheduleParallel,
-            MeshJob<GeoIcosphere, PositionStream>.ScheduleParallel,
+            MeshJob<SharedCubeSphere, SingleStream>.ScheduleParallel, // 需要是 SingleStream 而非 PositionStream
+            MeshJob<Icosphere, SingleStream>.ScheduleParallel, // 需要是 SingleStream 而非 PositionStream
+            MeshJob<GeoIcosphere, SingleStream>.ScheduleParallel, // 需要是 SingleStream 而非 PositionStream
             MeshJob<Octasphere, SingleStream>.ScheduleParallel,
             MeshJob<GeoOctasphere, SingleStream>.ScheduleParallel,
             MeshJob<UvSphere, SingleStream>.ScheduleParallel
@@ -147,6 +147,8 @@ namespace CatlikeCodings.PseudorandomSurfaces
             }
         };
 
+        private static readonly int MaterialIsPlaneId = Shader.PropertyToID("_IsPlane");
+
         private enum NoiseType
         {
             Perlin,
@@ -189,6 +191,7 @@ namespace CatlikeCodings.PseudorandomSurfaces
                 name = "Procedural Mesh"
             };
             GetComponent<MeshFilter>().mesh = _mesh;
+            materials[(int)displacement] = new Material(materials[(int)displacement]);
         }
 
         private void OnValidate() => enabled = true;
@@ -282,6 +285,12 @@ namespace CatlikeCodings.PseudorandomSurfaces
             _normals = null;
             _tangents = null;
             _triangles = null;
+            if (material == MaterialMode.Displacement)
+            {
+                materials[(int)MaterialMode.Displacement]
+                    .SetFloat(MaterialIsPlaneId, meshType < MeshType.CubeSphere ? 1f : 0f);
+            }
+
             GetComponent<MeshRenderer>().material = materials[(int)material];
         }
 
@@ -290,8 +299,9 @@ namespace CatlikeCodings.PseudorandomSurfaces
             var meshDataArray = Mesh.AllocateWritableMeshData(1);
             var meshData = meshDataArray[0];
             SurfaceJobs[(int)noiseType, dimensions - 1](meshData, resolution, noiseSettings, domain, displacement,
+                    meshType < MeshType.CubeSphere,
                     MeshJobs[(int)meshType](_mesh, meshData, resolution, default,
-                        new Vector3(0f, Mathf.Abs(displacement)), true))
+                        Vector3.one * Mathf.Abs(displacement), true))
                 .Complete();
             Mesh.ApplyAndDisposeWritableMeshData(meshDataArray, _mesh);
             if (recalculateNormals)

@@ -11,7 +11,18 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
         public struct Sample4
         {
             public float4 V, Dx, Dy, Dz;
-            public float4x3 Derivatives => float4x3(Dx, Dy, Dz);
+
+            public float4x3 Derivatives
+            {
+                get => float4x3(Dx, Dy, Dz);
+                set
+                {
+                    Dx = value.c0;
+                    Dy = value.c1;
+                    Dz = value.c2;
+                }
+            }
+
             public static implicit operator Sample4(float4 v) => new() { V = v };
 
             public static Sample4 operator +(Sample4 a, Sample4 b) => new()

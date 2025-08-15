@@ -23,5 +23,11 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
             m.c0.y * v.c0 + m.c1.y * v.c1 + m.c2.y * v.c2,
             m.c0.z * v.c0 + m.c1.z * v.c1 + m.c2.z * v.c2
         );
+
+        public static float4x3 NormalizeRows(this float4x3 m)
+        {
+            var normalizer = rsqrt(m.c0 * m.c0 + m.c1 * m.c1 + m.c2 * m.c2);
+            return float4x3(m.c0 * normalizer, m.c1 * normalizer, m.c2 * normalizer);
+        }
     }
 }
