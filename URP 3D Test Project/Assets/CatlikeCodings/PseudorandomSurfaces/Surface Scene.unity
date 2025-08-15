@@ -245,13 +245,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7650053191c94b96a6b3ba3d743dc2bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  noiseType: 1
+  noiseType: 10
   dimensions: 3
   meshOptimization: 0
   meshType: 1
   recalculateNormals: 1
   recalculateTangents: 1
-  resolution: 20
+  resolution: 40
   displacement: 0.25
   noiseSettings:
     seed: 0

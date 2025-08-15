@@ -167,16 +167,8 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
             public Sample4 Evaluate(SmallXxHash4 hash, float4 x, float4 y, float4 z) =>
                 default(TG).Evaluate(hash, x, y, z);
 
-            public Sample4 EvaluateCombined(Sample4 value)
-            {
-                var s = default(TG).EvaluateCombined(value);
-                var d = 6f * s.V * (1f - s.V);
-                s.Dx *= d;
-                s.Dy *= d;
-                s.Dz *= d;
-                s.V *= s.V * (3f - 2f * s.V);
-                return s;
-            }
+            public Sample4 EvaluateCombined(Sample4 value) =>
+                default(TG).EvaluateCombined(value).Smoothstep;
         }
     }
 }

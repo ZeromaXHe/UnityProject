@@ -8,12 +8,9 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
     /// Date: 2025-08-13 05:38:57
     public static partial class Noise
     {
-        private static float4x2 UpdateVoronoiMinima(float4x2 minima, float4 distances)
+        public struct VoronoiData
         {
-            var newMinimum = distances < minima.c0;
-            minima.c1 = select(select(minima.c1, distances, distances < minima.c1), minima.c0, newMinimum);
-            minima.c0 = select(minima.c0, distances, newMinimum);
-            return minima;
+            public Sample4 A, B;
         }
 
         public struct Voronoi1D<TL, TD, TF> : INoise
@@ -26,14 +23,16 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                 var l = default(TL);
                 var d = default(TD);
                 var x = l.GetLatticeSpan4(positions.c0, frequency);
-                float4x2 minima = 2f;
+                var data = d.InitialData;
                 for (var u = -1; u <= 1; u++)
                 {
                     var h = hash.Eat(l.ValidateSingleStep(x.P0 + u, frequency));
-                    minima = UpdateVoronoiMinima(minima, d.GetDistance(h.Floats01A + u - x.G0));
+                    data = d.UpdateVoronoiData(data, d.GetDistance(h.Floats01A + u - x.G0));
                 }
 
-                return default(TF).Evaluate(d.Finalize1D(minima));
+                var s = default(TF).Evaluate(d.Finalize1D(data));
+                s.Dx *= frequency;
+                return s;
             }
         }
 
@@ -49,7 +48,7 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                 LatticeSpan4
                     x = l.GetLatticeSpan4(positions.c0, frequency),
                     z = l.GetLatticeSpan4(positions.c2, frequency);
-                float4x2 minima = 2f;
+                var data = d.InitialData;
                 for (var u = -1; u <= 1; u++)
                 {
                     var hx = hash.Eat(l.ValidateSingleStep(x.P0 + u, frequency));
@@ -58,16 +57,18 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                     {
                         var h = hx.Eat(l.ValidateSingleStep(z.P0 + v, frequency));
                         var zOffset = v - z.G0;
-                        minima = UpdateVoronoiMinima(minima, d.GetDistance(
+                        data = d.UpdateVoronoiData(data, d.GetDistance(
                             h.Floats01A + xOffset, h.Floats01B + zOffset
                         ));
-                        minima = UpdateVoronoiMinima(minima, d.GetDistance(
+                        data = d.UpdateVoronoiData(data, d.GetDistance(
                             h.Floats01C + xOffset, h.Floats01D + zOffset
                         ));
                     }
                 }
 
-                return default(TF).Evaluate(d.Finalize2D(minima));
+                var s = default(TF).Evaluate(d.Finalize2D(data));
+                s.Dx *= frequency;
+                return s;
             }
         }
 
@@ -84,7 +85,7 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                     x = l.GetLatticeSpan4(positions.c0, frequency),
                     y = l.GetLatticeSpan4(positions.c1, frequency),
                     z = l.GetLatticeSpan4(positions.c2, frequency);
-                float4x2 minima = 2f;
+                var data = d.InitialData;
                 for (var u = -1; u <= 1; u++)
                 {
                     var hx = hash.Eat(l.ValidateSingleStep(x.P0 + u, frequency));
@@ -97,12 +98,12 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                         {
                             var h = hy.Eat(l.ValidateSingleStep(z.P0 + w, frequency));
                             var zOffset = w - z.G0;
-                            minima = UpdateVoronoiMinima(minima, d.GetDistance(
+                            data = d.UpdateVoronoiData(data, d.GetDistance(
                                 h.GetBitsAsFloats01(5, 0) + xOffset,
                                 h.GetBitsAsFloats01(5, 5) + yOffset,
                                 h.GetBitsAsFloats01(5, 10) + zOffset
                             ));
-                            minima = UpdateVoronoiMinima(minima, d.GetDistance(
+                            data = d.UpdateVoronoiData(data, d.GetDistance(
                                 h.GetBitsAsFloats01(5, 15) + xOffset,
                                 h.GetBitsAsFloats01(5, 20) + yOffset,
                                 h.GetBitsAsFloats01(5, 25) + zOffset
@@ -111,7 +112,9 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                     }
                 }
 
-                return default(TF).Evaluate(d.Finalize3D(minima));
+                var s = default(TF).Evaluate(d.Finalize3D(data));
+                s.Dx *= frequency;
+                return s;
             }
         }
     }

@@ -47,6 +47,28 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                 Dy = a.Dy / b,
                 Dz = a.Dz / b
             };
+
+            public static Sample4 Select(Sample4 f, Sample4 t, bool4 b) => new()
+            {
+                V = select(f.V, t.V, b),
+                Dx = select(f.Dx, t.Dx, b),
+                Dy = select(f.Dy, t.Dy, b),
+                Dz = select(f.Dz, t.Dz, b)
+            };
+
+            public Sample4 Smoothstep
+            {
+                get
+                {
+                    var s = this;
+                    var d = 6f * V * (1f - V);
+                    s.Dx *= d;
+                    s.Dy *= d;
+                    s.Dz *= d;
+                    s.V *= V * (3f - 2f * V);
+                    return s;
+                }
+            }
         }
     }
 }
