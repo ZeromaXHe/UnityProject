@@ -93,3 +93,8 @@ Rider 中修改：
 
   - 而修改 SRP Batcher，则需要在其中的 Rendering 右侧点击三个点的按钮，选择 Show Additional Properties。这样其中才会有 SRP Batcher 单选框
 
+- [Prototype - Paddle Square](https://catlikecoding.com/unity/tutorials/prototypes/paddle-square/)：5.1 章内容，找不到怎么才能：调整 URP 资源使其 *Post-processing / Grading Mode* 设置为 HDR。以及怎么才能：设置 *Post-processing / Volume Update Mode* 为 *Via Scripting* 。这可以防止 Unity 在每一帧中不必要地更新体积数据，因为我们从不更改它。
+
+  - 结果发现是点错了，点到 `Assets/Settings/URP-HighFidelityRenderer.asset` 上就找不到了…… 还是按上面说的找就行……
+
+
