@@ -15,8 +15,13 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                 var l = default(TL);
                 var x = l.GetLatticeSpan4(positions.c0, frequency);
                 var g = default(TG);
-                return g.EvaluateCombined(lerp(
-                    g.Evaluate(hash.Eat(x.P0), x.G0).V, g.Evaluate(hash.Eat(x.P1), x.G1).V, x.T));
+                Sample4 a = g.Evaluate(hash.Eat(x.P0), x.G0),
+                    b = g.Evaluate(hash.Eat(x.P1), x.G1);
+                return g.EvaluateCombined(new Sample4
+                {
+                    V = lerp(a.V, b.V, x.T),
+                    Dx = frequency * (lerp(a.Dx, b.Dx, x.T) + (b.V - a.V) * x.Dt)
+                });
             }
         }
 
@@ -30,11 +35,22 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                 var h0 = hash.Eat(x.P0);
                 var h1 = hash.Eat(x.P1);
                 var g = default(TG);
-                return g.EvaluateCombined(lerp(
-                    lerp(g.Evaluate(h0.Eat(z.P0), x.G0, z.G0).V, g.Evaluate(h0.Eat(z.P1), x.G0, z.G1).V, z.T),
-                    lerp(g.Evaluate(h1.Eat(z.P0), x.G1, z.G0).V, g.Evaluate(h1.Eat(z.P1), x.G1, z.G1).V, z.T),
-                    x.T
-                ));
+                Sample4
+                    a = g.Evaluate(h0.Eat(z.P0), x.G0, z.G0),
+                    b = g.Evaluate(h0.Eat(z.P1), x.G0, z.G1),
+                    c = g.Evaluate(h1.Eat(z.P0), x.G1, z.G0),
+                    d = g.Evaluate(h1.Eat(z.P1), x.G1, z.G1);
+
+                return g.EvaluateCombined(new Sample4
+                {
+                    V = lerp(lerp(a.V, b.V, z.T), lerp(c.V, d.V, z.T), x.T),
+                    Dx = frequency * (
+                        lerp(lerp(a.Dx, b.Dx, z.T), lerp(c.Dx, d.Dx, z.T), x.T) +
+                        (lerp(c.V, d.V, z.T) - lerp(a.V, b.V, z.T)) * x.Dt
+                    ),
+                    Dz = frequency * lerp(lerp(a.Dz, b.Dz, z.T) + (b.V - a.V) * z.Dt,
+                        lerp(c.Dz, d.Dz, z.T) + (d.V - c.V) * z.Dt, x.T)
+                });
             }
         }
 
@@ -56,32 +72,55 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                     h10 = h1.Eat(y.P0),
                     h11 = h1.Eat(y.P1);
 
-                var g = default(TG);
-                return g.EvaluateCombined(lerp(
-                    lerp(
-                        lerp(
-                            g.Evaluate(h00.Eat(z.P0), x.G0, y.G0, z.G0).V,
-                            g.Evaluate(h00.Eat(z.P1), x.G0, y.G0, z.G1).V,
-                            z.T),
-                        lerp(
-                            g.Evaluate(h01.Eat(z.P0), x.G0, y.G1, z.G0).V,
-                            g.Evaluate(h01.Eat(z.P1), x.G0, y.G1, z.G1).V,
-                            z.T),
-                        y.T
+                var gradient = default(TG);
+                Sample4
+                    a = gradient.Evaluate(h00.Eat(z.P0), x.G0, y.G0, z.G0),
+                    b = gradient.Evaluate(h00.Eat(z.P1), x.G0, y.G0, z.G1),
+                    c = gradient.Evaluate(h01.Eat(z.P0), x.G0, y.G1, z.G0),
+                    d = gradient.Evaluate(h01.Eat(z.P1), x.G0, y.G1, z.G1),
+                    e = gradient.Evaluate(h10.Eat(z.P0), x.G1, y.G0, z.G0),
+                    f = gradient.Evaluate(h10.Eat(z.P1), x.G1, y.G0, z.G1),
+                    g = gradient.Evaluate(h11.Eat(z.P0), x.G1, y.G1, z.G0),
+                    h = gradient.Evaluate(h11.Eat(z.P1), x.G1, y.G1, z.G1);
+
+                return gradient.EvaluateCombined(new Sample4
+                {
+                    V = lerp(
+                        lerp(lerp(a.V, b.V, z.T), lerp(c.V, d.V, z.T), y.T),
+                        lerp(lerp(e.V, f.V, z.T), lerp(g.V, h.V, z.T), y.T),
+                        x.T
                     ),
-                    lerp(
+                    Dx = frequency * (
                         lerp(
-                            g.Evaluate(h10.Eat(z.P0), x.G1, y.G0, z.G0).V,
-                            g.Evaluate(h10.Eat(z.P1), x.G1, y.G0, z.G1).V,
-                            z.T),
-                        lerp(
-                            g.Evaluate(h11.Eat(z.P0), x.G1, y.G1, z.G0).V,
-                            g.Evaluate(h11.Eat(z.P1), x.G1, y.G1, z.G1).V,
-                            z.T),
-                        y.T
+                            lerp(lerp(a.Dx, b.Dx, z.T), lerp(c.Dx, d.Dx, z.T), y.T),
+                            lerp(lerp(e.Dx, f.Dx, z.T), lerp(g.Dx, h.Dx, z.T), y.T),
+                            x.T
+                        ) + (
+                            lerp(lerp(e.V, f.V, z.T), lerp(g.V, h.V, z.T), y.T) -
+                            lerp(lerp(a.V, b.V, z.T), lerp(c.V, d.V, z.T), y.T)
+                        ) * x.Dt
                     ),
-                    x.T
-                ));
+                    Dy = frequency * lerp(
+                        lerp(lerp(a.Dy, b.Dy, z.T), lerp(c.Dy, d.Dy, z.T), y.T) +
+                        (lerp(c.V, d.V, z.T) - lerp(a.V, b.V, z.T)) * y.Dt,
+                        lerp(lerp(e.Dy, f.Dy, z.T), lerp(g.Dy, h.Dy, z.T), y.T) +
+                        (lerp(g.V, h.V, z.T) - lerp(e.V, f.V, z.T)) * y.Dt,
+                        x.T
+                    ),
+                    Dz = frequency * lerp(
+                        lerp(
+                            lerp(a.Dz, b.Dz, z.T) + (b.V - a.V) * z.Dt,
+                            lerp(c.Dz, d.Dz, z.T) + (d.V - c.V) * z.Dt,
+                            y.T
+                        ),
+                        lerp(
+                            lerp(e.Dz, f.Dz, z.T) + (f.V - e.V) * z.Dt,
+                            lerp(g.Dz, h.Dz, z.T) + (h.V - g.V) * z.Dt,
+                            y.T
+                        ),
+                        x.T
+                    )
+                });
             }
         }
 
@@ -89,7 +128,7 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
         {
             public int4 P0, P1;
             public float4 G0, G1;
-            public float4 T;
+            public float4 T, Dt;
         }
 
         public interface ILattice
@@ -109,8 +148,9 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                 span.P1 = span.P0 + 1;
                 span.G0 = coordinates - span.P0;
                 span.G1 = span.G0 - 1f;
-                span.T = coordinates - points;
-                span.T = span.T * span.T * span.T * (span.T * (span.T * 6f - 15f) + 10f);
+                var t = coordinates - points;
+                span.T = t * t * t * (t * (t * 6f - 15f) + 10f);
+                span.Dt = t * t * (t * (t * 30f - 60f) + 30f);
                 return span;
             }
 
@@ -133,8 +173,9 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                 span.P1 = span.P0 + 1;
                 span.P1 = select(span.P1, 0, span.P1 == frequency);
 
-                span.T = coordinates - points;
-                span.T = span.T * span.T * span.T * (span.T * (span.T * 6f - 15f) + 10f);
+                var t = coordinates - points;
+                span.T = t * t * t * (t * (t * 6f - 15f) + 10f);
+                span.Dt = t * t * (t * (t * 30f - 60f) + 30f);
                 return span;
             }
 

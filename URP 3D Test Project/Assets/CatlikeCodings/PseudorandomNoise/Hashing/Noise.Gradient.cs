@@ -84,10 +84,15 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                 return g;
             }
 
-            public static float4 Square(SmallXxHash4 hash, float4 x, float4 y)
+            public static Sample4 Square(SmallXxHash4 hash, float4 x, float4 y)
             {
                 var v = SquareVectors(hash);
-                return v.c0 * x + v.c1 * y;
+                return new Sample4
+                {
+                    V = v.c0 * x + v.c1 * y,
+                    Dx = v.c0,
+                    Dz = v.c1
+                };
             }
 
             public static Sample4 Circle(SmallXxHash4 hash, float4 x, float4 y)
@@ -101,12 +106,18 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                 } * rsqrt(v.c0 * v.c0 + v.c1 * v.c1);
             }
 
-            public static float4 Octahedron(
+            public static Sample4 Octahedron(
                 SmallXxHash4 hash, float4 x, float4 y, float4 z
             )
             {
                 var v = OctahedronVectors(hash);
-                return v.c0 * x + v.c1 * y + v.c2 * z;
+                return new Sample4
+                {
+                    V = v.c0 * x + v.c1 * y + v.c2 * z,
+                    Dx = v.c0,
+                    Dy = v.c1,
+                    Dz = v.c2
+                };
             }
 
             public static Sample4 Sphere(SmallXxHash4 hash, float4 x, float4 y, float4 z)
@@ -144,20 +155,21 @@ namespace CatlikeCodings.PseudorandomNoise.Hashing
                 return s;
             }
         }
-        
-        public struct Smoothstep<G> : IGradient where G : struct, IGradient {
 
-            public Sample4 Evaluate (SmallXxHash4 hash, float4 x) =>
-                default(G).Evaluate(hash, x);
+        public struct Smoothstep<TG> : IGradient where TG : struct, IGradient
+        {
+            public Sample4 Evaluate(SmallXxHash4 hash, float4 x) =>
+                default(TG).Evaluate(hash, x);
 
-            public Sample4 Evaluate (SmallXxHash4 hash, float4 x, float4 y) =>
-                default(G).Evaluate(hash, x, y);
+            public Sample4 Evaluate(SmallXxHash4 hash, float4 x, float4 y) =>
+                default(TG).Evaluate(hash, x, y);
 
-            public Sample4 Evaluate (SmallXxHash4 hash, float4 x, float4 y, float4 z) =>
-                default(G).Evaluate(hash, x, y, z);
+            public Sample4 Evaluate(SmallXxHash4 hash, float4 x, float4 y, float4 z) =>
+                default(TG).Evaluate(hash, x, y, z);
 
-            public Sample4 EvaluateCombined (Sample4 value) {
-                var s = default(G).EvaluateCombined(value);
+            public Sample4 EvaluateCombined(Sample4 value)
+            {
+                var s = default(TG).EvaluateCombined(value);
                 var d = 6f * s.V * (1f - s.V);
                 s.Dx *= d;
                 s.Dy *= d;

@@ -76,6 +76,21 @@ namespace CatlikeCodings.PseudorandomSurfaces
         private static readonly SurfaceJobScheduleDelegate[,] SurfaceJobs =
         {
             {
+                SurfaceJob<Lattice1D<LatticeNormal, Perlin>>.ScheduleParallel,
+                SurfaceJob<Lattice2D<LatticeNormal, Perlin>>.ScheduleParallel,
+                SurfaceJob<Lattice3D<LatticeNormal, Perlin>>.ScheduleParallel
+            },
+            {
+                SurfaceJob<Lattice1D<LatticeNormal, Smoothstep<Turbulence<Perlin>>>>.ScheduleParallel,
+                SurfaceJob<Lattice2D<LatticeNormal, Smoothstep<Turbulence<Perlin>>>>.ScheduleParallel,
+                SurfaceJob<Lattice3D<LatticeNormal, Smoothstep<Turbulence<Perlin>>>>.ScheduleParallel
+            },
+            {
+                SurfaceJob<Lattice1D<LatticeNormal, Value>>.ScheduleParallel,
+                SurfaceJob<Lattice2D<LatticeNormal, Value>>.ScheduleParallel,
+                SurfaceJob<Lattice3D<LatticeNormal, Value>>.ScheduleParallel
+            },
+            {
                 SurfaceJob<Simplex1D<Simplex>>.ScheduleParallel,
                 SurfaceJob<Simplex2D<Simplex>>.ScheduleParallel,
                 SurfaceJob<Simplex3D<Simplex>>.ScheduleParallel
@@ -94,6 +109,9 @@ namespace CatlikeCodings.PseudorandomSurfaces
 
         private enum NoiseType
         {
+            Perlin,
+            PerlinSmoothTurbulence,
+            PerlinValue,
             Simplex,
             SimplexSmoothTurbulence,
             SimplexValue
