@@ -17,12 +17,16 @@ namespace CatlikeCodings.Prototypes.Maze2
         private Maze _maze;
         private int _targetIndex;
         private Vector3 _targetPosition;
+        private Light _pointLight;
+
+        public float LightRange => _pointLight.range;
 
         public string TriggerMessage => triggerMessage;
 
         private void Awake()
         {
-            GetComponent<Light>().color = color;
+            _pointLight = GetComponent<Light>();
+            _pointLight.color = color;
             GetComponent<MeshRenderer>().material.color = color;
             var main = GetComponent<ParticleSystem>().main;
             main.startColor = color;
@@ -129,5 +133,7 @@ namespace CatlikeCodings.Prototypes.Maze2
 
             return transform.localPosition = position + targetVector * (movement / targetDistance);
         }
+
+        public void SetLightEnabled(bool enable) => _pointLight.enabled = enable;
     }
 }

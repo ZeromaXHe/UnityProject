@@ -1,4 +1,5 @@
 using UnityEngine;
+using static Unity.Mathematics.math;
 
 namespace CatlikeCodings.Prototypes.Maze2
 {
@@ -9,23 +10,29 @@ namespace CatlikeCodings.Prototypes.Maze2
     {
         [SerializeField, Min(0f)] private float movementSpeed = 4f, rotationSpeed = 180f, mouseSensitivity = 5f;
         [SerializeField] private float startingVerticalEyeAngle = 10f;
-        private CharacterController characterController;
-        private Transform eye;
-        private Vector2 eyeAngles;
+        private CharacterController _characterController;
+        private Transform _eye;
+        private Vector2 _eyeAngles;
+        private Camera _eyeCamera;
+        private FieldOfView _vision;
+
+        public FieldOfView Vision => _vision;
 
         private void Awake()
         {
-            characterController = GetComponent<CharacterController>();
-            eye = transform.GetChild(0);
+            _characterController = GetComponent<CharacterController>();
+            _eye = transform.GetChild(0);
+            _eyeCamera = _eye.GetComponent<Camera>();
+            _vision.Range = 1000f;
         }
 
         public void StartNewGame(Vector3 position)
         {
-            eyeAngles.x = Random.Range(0f, 360f);
-            eyeAngles.y = startingVerticalEyeAngle;
-            characterController.enabled = false;
+            _eyeAngles.x = Random.Range(0f, 360f);
+            _eyeAngles.y = startingVerticalEyeAngle;
+            _characterController.enabled = false;
             transform.localPosition = position;
-            characterController.enabled = true;
+            _characterController.enabled = true;
         }
 
         public Vector3 Move()
@@ -47,38 +54,45 @@ namespace CatlikeCodings.Prototypes.Maze2
             movement *= movementSpeed;
 
             var forward = new Vector2(
-                Mathf.Sin(eyeAngles.x * Mathf.Deg2Rad),
-                Mathf.Cos(eyeAngles.x * Mathf.Deg2Rad)
+                Mathf.Sin(_eyeAngles.x * Mathf.Deg2Rad),
+                Mathf.Cos(_eyeAngles.x * Mathf.Deg2Rad)
             );
             var right = new Vector2(forward.y, -forward.x);
 
             movement = right * movement.x + forward * movement.y;
-            characterController.SimpleMove(new Vector3(movement.x, 0f, movement.y));
+            _characterController.SimpleMove(new Vector3(movement.x, 0f, movement.y));
         }
 
         private void UpdateEyeAngles()
         {
             var rotationDelta = rotationSpeed * Time.deltaTime;
-            eyeAngles.x += rotationDelta * Input.GetAxis("Horizontal View");
-            eyeAngles.y -= rotationDelta * Input.GetAxis("Vertical View");
+            _eyeAngles.x += rotationDelta * Input.GetAxis("Horizontal View");
+            _eyeAngles.y -= rotationDelta * Input.GetAxis("Vertical View");
             if (mouseSensitivity > 0f)
             {
                 var mouseDelta = rotationDelta * mouseSensitivity;
-                eyeAngles.x += mouseDelta * Input.GetAxis("Mouse X");
-                eyeAngles.y -= mouseDelta * Input.GetAxis("Mouse Y");
+                _eyeAngles.x += mouseDelta * Input.GetAxis("Mouse X");
+                _eyeAngles.y -= mouseDelta * Input.GetAxis("Mouse Y");
             }
 
-            if (eyeAngles.x > 360f)
+            if (_eyeAngles.x > 360f)
             {
-                eyeAngles.x -= 360f;
+                _eyeAngles.x -= 360f;
             }
-            else if (eyeAngles.x < 0f)
+            else if (_eyeAngles.x < 0f)
             {
-                eyeAngles.x += 360f;
+                _eyeAngles.x += 360f;
             }
 
-            eyeAngles.y = Mathf.Clamp(eyeAngles.y, -45f, 45f);
-            eye.localRotation = Quaternion.Euler(eyeAngles.y, eyeAngles.x, 0f);
+            _eyeAngles.y = Mathf.Clamp(_eyeAngles.y, -45f, 45f);
+            var rotation = _eye.localRotation = Quaternion.Euler(_eyeAngles.y, _eyeAngles.x, 0f);
+            var viewFactorY = Mathf.Tan(_eyeCamera.fieldOfView * 0.5f * Mathf.Deg2Rad);
+            var viewFactorX = viewFactorY * _eyeCamera.aspect;
+            var y = _eyeAngles.y < 0f ? viewFactorY : -viewFactorY;
+            Vector3 leftLine = rotation * new Vector3(-viewFactorX, y, 1f),
+                rightLine = rotation * new Vector3(viewFactorX, y, 1f);
+            _vision.LeftLine = float2(leftLine.x, leftLine.z);
+            _vision.RightLine = float2(rightLine.x, rightLine.z);
         }
     }
 }

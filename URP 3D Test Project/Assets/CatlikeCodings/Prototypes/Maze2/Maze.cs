@@ -81,5 +81,10 @@ namespace CatlikeCodings.Prototypes.Maze2
 
         public int WorldPositionToIndex(Vector3 position) =>
             CoordinatesToIndex(WorldPositionToCoordinates(position));
+
+        public readonly float WorldToMazeDistance(float distance) => distance * 0.5f;
+
+        public readonly float2 WorldToMazePosition(Vector3 position) =>
+            (float2(position.x, position.z) + _size) * 0.5f;
     }
 }

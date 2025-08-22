@@ -20,7 +20,16 @@ namespace CatlikeCodings.Prototypes.Maze2
         PassageSW = 0b0100_0000,
         PassageNW = 0b1000_0000,
 
-        PassagesDiagonal = 0b1111_0000
+        PassagesDiagonal = 0b1111_0000,
+
+        VisibleToPlayer = 0b0001_0000_0000,
+
+        VisbleToAgentA = 0b0010_0000_0000,
+        VisbleToAgentB = 0b0100_0000_0000,
+        VisbleToAgentC = 0b1000_0000_0000,
+
+        VisibleToAllAgents = 0b1110_0000_0000,
+        VisibleToAll = 0b1111_0000_0000
     }
 
     public static class MazeFlagsExtensions
