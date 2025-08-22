@@ -39,6 +39,10 @@ Rider 中修改：
 
 关闭以后需要在 Unity 内使用 `Ctrl + R` 重新编译
 
+## 关闭软件
+
+Unity 为什么关闭的时候可以卡个 10 min 啊？就离谱！而且还不是一般的任务被别的原因阻塞不执行的慢，而是把整个电脑都卡慢的那种（说明在执行）
+
 ## 笔记速记
 
 ### 编辑器
@@ -95,6 +99,5 @@ Rider 中修改：
 
 - [Prototype - Paddle Square](https://catlikecoding.com/unity/tutorials/prototypes/paddle-square/)：5.1 章内容，找不到怎么才能：调整 URP 资源使其 *Post-processing / Grading Mode* 设置为 HDR。以及怎么才能：设置 *Post-processing / Volume Update Mode* 为 *Via Scripting* 。这可以防止 Unity 在每一帧中不必要地更新体积数据，因为我们从不更改它。
 
-  - 结果发现是点错了，点到 `Assets/Settings/URP-HighFidelityRenderer.asset` 上就找不到了…… 还是按上面说的找就行……
-
+  - 结果发现是点错了，点到 `Assets/Settings/URP-HighFidelity-Renderer.asset` 上就找不到了…… 还是按上面说的找就行……
 
