@@ -8,11 +8,13 @@ namespace CatlikeCodings.ObjectManagement
     /// Date: 2025-08-22 22:18:47
     public class GameDataReader
     {
+        public int Version { get; }
         private readonly BinaryReader _reader;
 
-        public GameDataReader(BinaryReader reader)
+        public GameDataReader(BinaryReader reader, int version)
         {
             _reader = reader;
+            Version = version;
         }
 
         public float ReadFloat()
@@ -41,6 +43,16 @@ namespace CatlikeCodings.ObjectManagement
             value.x = _reader.ReadSingle();
             value.y = _reader.ReadSingle();
             value.z = _reader.ReadSingle();
+            return value;
+        }
+
+        public Color ReadColor()
+        {
+            Color value;
+            value.r = _reader.ReadSingle();
+            value.g = _reader.ReadSingle();
+            value.b = _reader.ReadSingle();
+            value.a = _reader.ReadSingle();
             return value;
         }
     }
