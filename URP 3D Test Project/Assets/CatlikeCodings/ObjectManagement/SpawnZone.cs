@@ -1,3 +1,4 @@
+using CatlikeCodings.ObjectManagement.Behaviors;
 using UnityEngine;
 
 namespace CatlikeCodings.ObjectManagement
@@ -25,6 +26,9 @@ namespace CatlikeCodings.ObjectManagement
             public FloatRange scale;
             public ColorRangeHSV color;
             public bool uniformColor;
+            public MovementDirection oscillationDirection;
+            public FloatRange oscillationAmplitude;
+            public FloatRange oscillationFrequency;
         }
 
         [SerializeField] private SpawnConfiguration spawnConfig;
@@ -52,16 +56,47 @@ namespace CatlikeCodings.ObjectManagement
                 }
             }
 
-            shape.AngularVelocity = Random.onUnitSphere * spawnConfig.angularSpeed.RandomValueInRange;
-            var direction = spawnConfig.movementDirection switch
+            var angularSpeed = spawnConfig.angularSpeed.RandomValueInRange;
+            if (angularSpeed != 0f)
+            {
+                var rotation = shape.AddBehavior<RotationShapeBehavior>();
+                rotation.AngularVelocity = Random.onUnitSphere * angularSpeed;
+            }
+
+            var speed = spawnConfig.speed.RandomValueInRange;
+            if (speed != 0f)
+            {
+                var movement = shape.AddBehavior<MovementShapeBehavior>();
+                movement.Velocity = GetDirectionVector(spawnConfig.movementDirection, t) * speed;
+            }
+
+            SetupOscillation(shape);
+            return shape;
+        }
+
+        private void SetupOscillation(Shape shape)
+        {
+            var amplitude = spawnConfig.oscillationAmplitude.RandomValueInRange;
+            var frequency = spawnConfig.oscillationFrequency.RandomValueInRange;
+            if (amplitude == 0f || frequency == 0f)
+            {
+                return;
+            }
+
+            var oscillation = shape.AddBehavior<OscillationShapeBehavior>();
+            oscillation.Offset = GetDirectionVector(spawnConfig.oscillationDirection, shape.transform) * amplitude;
+            oscillation.Frequency = frequency;
+        }
+
+        private Vector3 GetDirectionVector(SpawnConfiguration.MovementDirection direction, Transform t)
+        {
+            return direction switch
             {
                 SpawnConfiguration.MovementDirection.Upward => transform.up,
                 SpawnConfiguration.MovementDirection.Outward => (t.localPosition - transform.position).normalized,
                 SpawnConfiguration.MovementDirection.Random => Random.onUnitSphere,
                 _ => transform.forward
             };
-            shape.Velocity = direction * spawnConfig.speed.RandomValueInRange;
-            return shape;
         }
     }
 }

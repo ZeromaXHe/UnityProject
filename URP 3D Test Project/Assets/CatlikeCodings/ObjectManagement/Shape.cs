@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using CatlikeCodings.ObjectManagement.Behaviors;
 using UnityEngine;
 
 namespace CatlikeCodings.ObjectManagement
@@ -27,8 +30,6 @@ namespace CatlikeCodings.ObjectManagement
         }
 
         public int MaterialId { get; private set; }
-        public Vector3 AngularVelocity { get; set; }
-        public Vector3 Velocity { get; set; }
 
         private Color[] _colors;
 
@@ -51,6 +52,8 @@ namespace CatlikeCodings.ObjectManagement
         }
 
         private ShapeFactory _originFactory;
+        private readonly List<ShapeBehavior> _behaviorList = new();
+        public float Age { get; private set; }
 
         private static MaterialPropertyBlock _sharedPropertyBlock;
         private static readonly int ColorPropertyId = Shader.PropertyToID("_Color");
@@ -62,8 +65,11 @@ namespace CatlikeCodings.ObjectManagement
 
         public void GameUpdate()
         {
-            transform.Rotate(AngularVelocity * Time.deltaTime);
-            transform.localPosition += Velocity * Time.deltaTime;
+            Age += Time.deltaTime;
+            foreach (var behavior in _behaviorList)
+            {
+                behavior.GameUpdate(this);
+            }
         }
 
         public void SetMaterial(Material material, int materialId)
@@ -104,8 +110,13 @@ namespace CatlikeCodings.ObjectManagement
                 writer.Write(color);
             }
 
-            writer.Write(AngularVelocity);
-            writer.Write(Velocity);
+            writer.Write(Age);
+            writer.Write(_behaviorList.Count);
+            foreach (var behavior in _behaviorList)
+            {
+                writer.Write((int)behavior.BehaviorType);
+                behavior.Save(writer);
+            }
         }
 
         public override void Load(GameDataReader reader)
@@ -120,8 +131,22 @@ namespace CatlikeCodings.ObjectManagement
                 SetColor(reader.Version > 0 ? reader.ReadColor() : Color.white);
             }
 
-            AngularVelocity = reader.Version >= 4 ? reader.ReadVector3() : Vector3.zero;
-            Velocity = reader.Version >= 4 ? reader.ReadVector3() : Vector3.zero;
+            if (reader.Version >= 6)
+            {
+                Age = reader.ReadFloat();
+                var behaviorCount = reader.ReadInt();
+                for (var i = 0; i < behaviorCount; i++)
+                {
+                    var behavior = ((ShapeBehaviorType)reader.ReadInt()).GetInstance();
+                    _behaviorList.Add(behavior);
+                    behavior.Load(reader);
+                }
+            }
+            else if (reader.Version >= 4)
+            {
+                AddBehavior<RotationShapeBehavior>().AngularVelocity = reader.ReadVector3();
+                AddBehavior<MovementShapeBehavior>().Velocity = reader.ReadVector3();
+            }
         }
 
         private void LoadColors(GameDataReader reader)
@@ -152,7 +177,21 @@ namespace CatlikeCodings.ObjectManagement
 
         public void Recycle()
         {
+            Age = 0f;
+            foreach (var behavior in _behaviorList)
+            {
+                behavior.Recycle();
+            }
+
+            _behaviorList.Clear();
             OriginFactory.Reclaim(this);
+        }
+
+        public T AddBehavior<T>() where T : ShapeBehavior, new()
+        {
+            var behavior = ShapeBehaviorPool<T>.Get();
+            _behaviorList.Add(behavior);
+            return behavior;
         }
     }
 }

@@ -1,0 +1,34 @@
+using UnityEngine;
+
+namespace CatlikeCodings.ObjectManagement.Behaviors
+{
+    /// Copyright (C) 2025-present Zhu Xiaohe(aka ZeromaXHe)
+    /// Author: Zhu XH (ZeromaXHe)
+    /// Date: 2025-08-23 16:05:44
+    public sealed class MovementShapeBehavior : ShapeBehavior
+    {
+        public Vector3 Velocity { get; set; }
+
+        public override void GameUpdate(Shape shape)
+        {
+            shape.transform.localPosition += Velocity * Time.deltaTime;
+        }
+
+        public override void Save(GameDataWriter writer)
+        {
+            writer.Write(Velocity);
+        }
+
+        public override void Load(GameDataReader reader)
+        {
+            Velocity = reader.ReadVector3();
+        }
+
+        public override ShapeBehaviorType BehaviorType => ShapeBehaviorType.Movement;
+
+        public override void Recycle()
+        {
+            ShapeBehaviorPool<MovementShapeBehavior>.Reclaim(this);
+        }
+    }
+}

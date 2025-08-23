@@ -23,7 +23,7 @@ namespace CatlikeCodings.ObjectManagement
         [SerializeField] private Slider destructionSpeedSlider;
         [SerializeField] private ShapeFactory[] shapeFactories;
 
-        private const int SaveVersion = 5;
+        private const int SaveVersion = 6;
         private Random.State _mainRandomState;
         private List<Shape> _shapes;
         private float _creationProgress, _destructionProgress;
