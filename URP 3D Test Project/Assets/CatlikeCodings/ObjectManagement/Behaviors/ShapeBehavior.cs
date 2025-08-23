@@ -7,7 +7,8 @@ namespace CatlikeCodings.ObjectManagement.Behaviors
     {
         Movement,
         Rotation,
-        Oscillation
+        Oscillation,
+        Satellite
     }
 
     public static class ShapeBehaviorTypeMethods
@@ -22,6 +23,8 @@ namespace CatlikeCodings.ObjectManagement.Behaviors
                     return ShapeBehaviorPool<RotationShapeBehavior>.Get();
                 case ShapeBehaviorType.Oscillation:
                     return ShapeBehaviorPool<OscillationShapeBehavior>.Get();
+                case ShapeBehaviorType.Satellite:
+                    return ShapeBehaviorPool<SatelliteShapeBehavior>.Get();
                 default:
                     Debug.Log("Forgot to support " + type);
                     return null;
@@ -49,7 +52,11 @@ namespace CatlikeCodings.ObjectManagement.Behaviors
         }
 #endif
 
-        public abstract void GameUpdate(Shape shape);
+        public virtual void ResolveShapeInstances()
+        {
+        }
+
+        public abstract bool GameUpdate(Shape shape);
         public abstract void Save(GameDataWriter writer);
         public abstract void Load(GameDataReader reader);
         public abstract ShapeBehaviorType BehaviorType { get; }

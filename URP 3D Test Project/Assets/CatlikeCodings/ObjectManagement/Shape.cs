@@ -54,6 +54,8 @@ namespace CatlikeCodings.ObjectManagement
         private ShapeFactory _originFactory;
         private readonly List<ShapeBehavior> _behaviorList = new();
         public float Age { get; private set; }
+        public int InstanceId { get; private set; }
+        public int SaveIndex { get; set; }
 
         private static MaterialPropertyBlock _sharedPropertyBlock;
         private static readonly int ColorPropertyId = Shader.PropertyToID("_Color");
@@ -66,9 +68,13 @@ namespace CatlikeCodings.ObjectManagement
         public void GameUpdate()
         {
             Age += Time.deltaTime;
-            foreach (var behavior in _behaviorList)
+            for (var i = 0; i < _behaviorList.Count; i++)
             {
-                behavior.GameUpdate(this);
+                if (!_behaviorList[i].GameUpdate(this))
+                {
+                    _behaviorList[i].Recycle();
+                    _behaviorList.RemoveAt(i--);
+                }
             }
         }
 
@@ -178,6 +184,7 @@ namespace CatlikeCodings.ObjectManagement
         public void Recycle()
         {
             Age = 0f;
+            InstanceId += 1;
             foreach (var behavior in _behaviorList)
             {
                 behavior.Recycle();
@@ -192,6 +199,14 @@ namespace CatlikeCodings.ObjectManagement
             var behavior = ShapeBehaviorPool<T>.Get();
             _behaviorList.Add(behavior);
             return behavior;
+        }
+
+        public void ResolveShapeInstances()
+        {
+            foreach (var shapeBehavior in _behaviorList)
+            {
+                shapeBehavior.ResolveShapeInstances();
+            }
         }
     }
 }

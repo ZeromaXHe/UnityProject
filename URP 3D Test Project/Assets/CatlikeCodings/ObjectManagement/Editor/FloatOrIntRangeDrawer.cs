@@ -6,8 +6,8 @@ namespace CatlikeCodings.ObjectManagement.Editor
     /// Copyright (C) 2025-present Zhu Xiaohe(aka ZeromaXHe)
     /// Author: Zhu XH (ZeromaXHe)
     /// Date: 2025-08-23 14:57:46
-    [CustomPropertyDrawer(typeof(FloatRange))]
-    public class FloatRangeDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(FloatRange)), CustomPropertyDrawer(typeof(IntRange))]
+    public class FloatOrIntRangeDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {

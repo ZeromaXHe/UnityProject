@@ -60,5 +60,10 @@ namespace CatlikeCodings.ObjectManagement
         {
             return JsonUtility.FromJson<Random.State>(_reader.ReadString());
         }
+
+        public ShapeInstance ReadShapeInstance()
+        {
+            return new ShapeInstance(_reader.ReadInt32());
+        }
     }
 }

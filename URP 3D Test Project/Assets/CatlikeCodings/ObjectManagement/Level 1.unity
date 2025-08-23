@@ -182,6 +182,19 @@ MonoBehaviour:
     oscillationFrequency:
       min: 0
       max: 0
+    satellite:
+      amount:
+        min: 0
+        max: 0
+      relativeScale:
+        min: 0
+        max: 0
+      orbitRadius:
+        min: 0
+        max: 0
+      orbitFrequency:
+        min: 0
+        max: 0
   surfaceOnly: 1
 --- !u!4 &165585883
 Transform:
@@ -303,6 +316,19 @@ MonoBehaviour:
     oscillationFrequency:
       min: 0
       max: 0
+    satellite:
+      amount:
+        min: 0
+        max: 0
+      relativeScale:
+        min: 0
+        max: 0
+      orbitRadius:
+        min: 0
+        max: 0
+      orbitFrequency:
+        min: 0
+        max: 0
   surfaceOnly: 0
 --- !u!4 &561286918
 Transform:
@@ -397,6 +423,19 @@ MonoBehaviour:
     oscillationFrequency:
       min: 1
       max: 1
+    satellite:
+      amount:
+        min: 0
+        max: 3
+      relativeScale:
+        min: 0.25
+        max: 0.5
+      orbitRadius:
+        min: 1
+        max: 2
+      orbitFrequency:
+        min: 0.25
+        max: 0.5
   overrideConfig: 1
   sequential: 1
   spawnZones:
@@ -476,6 +515,19 @@ MonoBehaviour:
     oscillationFrequency:
       min: 0
       max: 0
+    satellite:
+      amount:
+        min: 0
+        max: 0
+      relativeScale:
+        min: 0
+        max: 0
+      orbitRadius:
+        min: 0
+        max: 0
+      orbitFrequency:
+        min: 0
+        max: 0
   overrideConfig: 0
   sequential: 0
   spawnZones:
@@ -557,6 +609,19 @@ MonoBehaviour:
     oscillationFrequency:
       min: 0
       max: 0
+    satellite:
+      amount:
+        min: 0
+        max: 0
+      relativeScale:
+        min: 0
+        max: 0
+      orbitRadius:
+        min: 0
+        max: 0
+      orbitFrequency:
+        min: 0
+        max: 0
   surfaceOnly: 0
 --- !u!1 &1012277553
 GameObject:
@@ -735,6 +800,19 @@ MonoBehaviour:
     oscillationFrequency:
       min: 0
       max: 0
+    satellite:
+      amount:
+        min: 0
+        max: 0
+      relativeScale:
+        min: 0
+        max: 0
+      orbitRadius:
+        min: 0
+        max: 0
+      orbitFrequency:
+        min: 0
+        max: 0
   surfaceOnly: 0
 --- !u!4 &1220679579
 Transform:
@@ -825,6 +903,19 @@ MonoBehaviour:
     oscillationFrequency:
       min: 0
       max: 0
+    satellite:
+      amount:
+        min: 0
+        max: 0
+      relativeScale:
+        min: 0
+        max: 0
+      orbitRadius:
+        min: 0
+        max: 0
+      orbitFrequency:
+        min: 0
+        max: 0
   surfaceOnly: 0
 --- !u!1 &1502148489
 GameObject:
@@ -931,6 +1022,19 @@ MonoBehaviour:
     oscillationFrequency:
       min: 0
       max: 0
+    satellite:
+      amount:
+        min: 0
+        max: 0
+      relativeScale:
+        min: 0
+        max: 0
+      orbitRadius:
+        min: 0
+        max: 0
+      orbitFrequency:
+        min: 0
+        max: 0
   surfaceOnly: 1
 --- !u!4 &1773869807
 Transform:
@@ -991,6 +1095,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd4aa84a813445e1a89644f82733a61d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  populationLimit: 100
   spawnZone: {fileID: 567338200}
   persistentObjects:
   - {fileID: 541759047}

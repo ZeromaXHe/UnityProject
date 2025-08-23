@@ -52,5 +52,10 @@ namespace CatlikeCodings.ObjectManagement
         {
             _writer.Write(JsonUtility.ToJson(value));
         }
+
+        public void Write(ShapeInstance value)
+        {
+            _writer.Write(value.IsValid ? value.Shape.SaveIndex : -1);
+        }
     }
 }

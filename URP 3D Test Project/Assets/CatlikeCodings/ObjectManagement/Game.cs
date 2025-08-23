@@ -32,8 +32,22 @@ namespace CatlikeCodings.ObjectManagement
         public float CreationSpeed { get; set; }
         public float DestructionSpeed { get; set; }
 
+        public static Game Instance { get; private set; }
+
+        public void AddShape(Shape shape)
+        {
+            shape.SaveIndex = _shapes.Count;
+            _shapes.Add(shape);
+        }
+
+        public Shape GetShape(int index)
+        {
+            return _shapes[index];
+        }
+
         private void OnEnable()
         {
+            Instance = this;
             if (shapeFactories[0].FactoryId != 0)
             {
                 for (var i = 0; i < shapeFactories.Length; i++)
@@ -83,7 +97,7 @@ namespace CatlikeCodings.ObjectManagement
         {
             if (Input.GetKeyDown(createKey))
             {
-                CreateShape();
+                GameLevel.Current.SpawnShapes();
             }
             else if (Input.GetKeyDown(destroyKey))
             {
@@ -128,7 +142,7 @@ namespace CatlikeCodings.ObjectManagement
             while (_creationProgress >= 1f)
             {
                 _creationProgress -= 1f;
-                CreateShape();
+                GameLevel.Current.SpawnShapes();
             }
 
             _destructionProgress += Time.deltaTime * DestructionSpeed;
@@ -136,6 +150,15 @@ namespace CatlikeCodings.ObjectManagement
             {
                 _destructionProgress -= 1f;
                 DestroyShape();
+            }
+
+            var limit = GameLevel.Current.PopulationLimit;
+            if (limit > 0)
+            {
+                while (_shapes.Count > limit)
+                {
+                    DestroyShape();
+                }
             }
         }
 
@@ -201,7 +224,11 @@ namespace CatlikeCodings.ObjectManagement
                 var materialId = version > 0 ? reader.ReadInt() : 0;
                 var instance = shapeFactories[factoryId].Get(shapeId, materialId);
                 instance.Load(reader);
-                _shapes.Add(instance);
+            }
+
+            foreach (var shape in _shapes)
+            {
+                shape.ResolveShapeInstances();
             }
         }
 
@@ -221,11 +248,6 @@ namespace CatlikeCodings.ObjectManagement
             _shapes.Clear();
         }
 
-        private void CreateShape()
-        {
-            _shapes.Add(GameLevel.Current.SpawnShape());
-        }
-
         private void DestroyShape()
         {
             if (_shapes.Count > 0)
@@ -233,6 +255,7 @@ namespace CatlikeCodings.ObjectManagement
                 var index = Random.Range(0, _shapes.Count);
                 _shapes[index].Recycle();
                 var lastIndex = _shapes.Count - 1;
+                _shapes[lastIndex].SaveIndex = index;
                 _shapes[index] = _shapes[lastIndex];
                 _shapes.RemoveAt(lastIndex);
             }

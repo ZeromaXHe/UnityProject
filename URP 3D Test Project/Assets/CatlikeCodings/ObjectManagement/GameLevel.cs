@@ -7,9 +7,11 @@ namespace CatlikeCodings.ObjectManagement
     /// Date: 2025-08-23 12:07:35
     public class GameLevel : PersistableObject
     {
+        [SerializeField] private int populationLimit;
         [SerializeField] private SpawnZone spawnZone;
         [SerializeField] private PersistableObject[] persistentObjects;
 
+        public int PopulationLimit => populationLimit;
         public static GameLevel Current { get; private set; }
 
         private void OnEnable()
@@ -21,9 +23,9 @@ namespace CatlikeCodings.ObjectManagement
             }
         }
 
-        public Shape SpawnShape()
+        public void SpawnShapes()
         {
-            return spawnZone.SpawnShape();
+            spawnZone.SpawnShapes();
         }
 
         public override void Save(GameDataWriter writer)

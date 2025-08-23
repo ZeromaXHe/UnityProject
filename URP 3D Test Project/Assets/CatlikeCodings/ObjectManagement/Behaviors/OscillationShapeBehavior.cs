@@ -12,11 +12,12 @@ namespace CatlikeCodings.ObjectManagement.Behaviors
         private float _previousOscillation;
         public override ShapeBehaviorType BehaviorType => ShapeBehaviorType.Oscillation;
 
-        public override void GameUpdate(Shape shape)
+        public override bool GameUpdate(Shape shape)
         {
             var oscillation = Mathf.Sin(2f * Mathf.PI * Frequency * shape.Age);
             shape.transform.localPosition += (oscillation - _previousOscillation) * Offset;
             _previousOscillation = oscillation;
+            return true;
         }
 
         public override void Save(GameDataWriter writer)

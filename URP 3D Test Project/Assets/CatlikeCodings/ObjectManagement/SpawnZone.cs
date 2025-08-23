@@ -29,13 +29,24 @@ namespace CatlikeCodings.ObjectManagement
             public MovementDirection oscillationDirection;
             public FloatRange oscillationAmplitude;
             public FloatRange oscillationFrequency;
+
+            [System.Serializable]
+            public struct SatelliteConfiguration
+            {
+                public IntRange amount;
+                [FloatRangeSlider(0.1f, 1f)] public FloatRange relativeScale;
+                public FloatRange orbitRadius;
+                public FloatRange orbitFrequency;
+            }
+
+            public SatelliteConfiguration satellite;
         }
 
         [SerializeField] private SpawnConfiguration spawnConfig;
 
         public abstract Vector3 SpawnPoint { get; }
 
-        public virtual Shape SpawnShape()
+        public virtual void SpawnShapes()
         {
             var factoryIndex = Random.Range(0, spawnConfig.factories.Length);
             var shape = spawnConfig.factories[factoryIndex].GetRandom();
@@ -44,18 +55,7 @@ namespace CatlikeCodings.ObjectManagement
             t.localPosition = SpawnPoint;
             t.localRotation = Random.rotation;
             t.localScale = Vector3.one * spawnConfig.scale.RandomValueInRange;
-            if (spawnConfig.uniformColor)
-            {
-                shape.SetColor(spawnConfig.color.RandomInRange);
-            }
-            else
-            {
-                for (var i = 0; i < shape.ColorCount; i++)
-                {
-                    shape.SetColor(spawnConfig.color.RandomInRange, i);
-                }
-            }
-
+            SetupColor(shape);
             var angularSpeed = spawnConfig.angularSpeed.RandomValueInRange;
             if (angularSpeed != 0f)
             {
@@ -71,7 +71,11 @@ namespace CatlikeCodings.ObjectManagement
             }
 
             SetupOscillation(shape);
-            return shape;
+            var satelliteCount = spawnConfig.satellite.amount.RandomValueInRange;
+            for (var i = 0; i < satelliteCount; i++)
+            {
+                CreateSatelliteFor(shape);
+            }
         }
 
         private void SetupOscillation(Shape shape)
@@ -97,6 +101,36 @@ namespace CatlikeCodings.ObjectManagement
                 SpawnConfiguration.MovementDirection.Random => Random.onUnitSphere,
                 _ => transform.forward
             };
+        }
+
+        private void CreateSatelliteFor(Shape focalShape)
+        {
+            var factoryIndex = Random.Range(0, spawnConfig.factories.Length);
+            var shape = spawnConfig.factories[factoryIndex].GetRandom();
+            var t = shape.transform;
+            t.localRotation = Random.rotation;
+            t.localScale = focalShape.transform.localScale * spawnConfig.satellite.relativeScale.RandomValueInRange;
+            SetupColor(shape);
+            shape.AddBehavior<SatelliteShapeBehavior>().Initialize(
+                shape, focalShape,
+                spawnConfig.satellite.orbitRadius.RandomValueInRange,
+                spawnConfig.satellite.orbitFrequency.RandomValueInRange
+            );
+        }
+
+        private void SetupColor(Shape shape)
+        {
+            if (spawnConfig.uniformColor)
+            {
+                shape.SetColor(spawnConfig.color.RandomInRange);
+            }
+            else
+            {
+                for (var i = 0; i < shape.ColorCount; i++)
+                {
+                    shape.SetColor(spawnConfig.color.RandomInRange, i);
+                }
+            }
         }
     }
 }
