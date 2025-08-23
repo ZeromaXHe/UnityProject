@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace CatlikeCodings.ObjectManagement
 {
@@ -18,25 +19,22 @@ namespace CatlikeCodings.ObjectManagement
         public KeyCode loadKey = KeyCode.L;
         public PersistentStorage storage;
         public int levelCount;
+        [SerializeField] private bool reseedOnLoad;
+        [SerializeField] private Slider creationSpeedSlider;
+        [SerializeField] private Slider destructionSpeedSlider;
 
-        private const int SaveVersion = 2;
+        private const int SaveVersion = 3;
+        private Random.State _mainRandomState;
         private List<Shape> _shapes;
         private float _creationProgress, _destructionProgress;
         private int _loadedLevelBuildIndex;
 
-        public static Game Instance { get; private set; }
         public float CreationSpeed { get; set; }
         public float DestructionSpeed { get; set; }
-        public SpawnZone SpawnZoneOfLevel { get; set; }
-
-        private void OnEnable()
-        {
-            Instance = this;
-        }
 
         private void Start()
         {
-            Instance = this;
+            _mainRandomState = Random.state;
             _shapes = new List<Shape>();
             if (Application.isEditor)
             {
@@ -52,6 +50,7 @@ namespace CatlikeCodings.ObjectManagement
                 }
             }
 
+            BeginNewGame();
             StartCoroutine(LoadLevel(1));
         }
 
@@ -82,6 +81,7 @@ namespace CatlikeCodings.ObjectManagement
             else if (Input.GetKey(newGameKey))
             {
                 BeginNewGame();
+                StartCoroutine(LoadLevel(_loadedLevelBuildIndex));
             }
             else if (Input.GetKeyDown(saveKey))
             {
@@ -104,7 +104,10 @@ namespace CatlikeCodings.ObjectManagement
                     }
                 }
             }
+        }
 
+        private void FixedUpdate()
+        {
             _creationProgress += Time.deltaTime * CreationSpeed;
             while (_creationProgress >= 1f)
             {
@@ -123,7 +126,13 @@ namespace CatlikeCodings.ObjectManagement
         public override void Save(GameDataWriter writer)
         {
             writer.Write(_shapes.Count);
+            writer.Write(Random.state);
+            writer.Write(CreationSpeed);
+            writer.Write(_creationProgress);
+            writer.Write(DestructionSpeed);
+            writer.Write(_destructionProgress);
             writer.Write(_loadedLevelBuildIndex);
+            GameLevel.Current.Save(writer);
             foreach (var o in _shapes)
             {
                 writer.Write(o.ShapeId);
@@ -141,8 +150,33 @@ namespace CatlikeCodings.ObjectManagement
                 return;
             }
 
+            StartCoroutine(LoadGame(reader));
+        }
+
+        private IEnumerator LoadGame(GameDataReader reader)
+        {
+            var version = reader.Version;
             var count = version <= 0 ? -version : reader.ReadInt();
-            StartCoroutine(LoadLevel(version < 2 ? 1 : reader.ReadInt()));
+            if (version >= 3)
+            {
+                var state = reader.ReadRandomState();
+                if (!reseedOnLoad)
+                {
+                    Random.state = state;
+                }
+
+                creationSpeedSlider.value = CreationSpeed = reader.ReadFloat();
+                _creationProgress = reader.ReadFloat();
+                destructionSpeedSlider.value = DestructionSpeed = reader.ReadFloat();
+                _destructionProgress = reader.ReadFloat();
+            }
+
+            yield return LoadLevel(version < 2 ? 1 : reader.ReadInt());
+            if (version >= 3)
+            {
+                GameLevel.Current.Load(reader);
+            }
+
             for (var i = 0; i < count; i++)
             {
                 var shapeId = version > 0 ? reader.ReadInt() : 0;
@@ -155,6 +189,12 @@ namespace CatlikeCodings.ObjectManagement
 
         private void BeginNewGame()
         {
+            Random.state = _mainRandomState;
+            var seed = Random.Range(0, int.MaxValue) ^ (int)Time.unscaledTime;
+            _mainRandomState = Random.state;
+            Random.InitState(seed);
+            creationSpeedSlider.value = CreationSpeed = 0;
+            destructionSpeedSlider.value = DestructionSpeed = 0;
             foreach (var obj in _shapes)
             {
                 shapeFactory.Reclaim(obj);
@@ -167,7 +207,7 @@ namespace CatlikeCodings.ObjectManagement
         {
             var instance = shapeFactory.GetRandom();
             var t = instance.transform;
-            t.localPosition = SpawnZoneOfLevel.SpawnPoint;
+            t.localPosition = GameLevel.Current.SpawnPoint;
             t.localRotation = Random.rotation;
             t.localScale = Vector3.one * Random.Range(0.1f, 1f);
             instance.SetColor(Random.ColorHSV(
