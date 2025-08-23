@@ -11,7 +11,6 @@ namespace CatlikeCodings.ObjectManagement
         [SerializeField] private PersistableObject[] persistentObjects;
 
         public static GameLevel Current { get; private set; }
-        public Vector3 SpawnPoint => spawnZone.SpawnPoint;
 
         private void OnEnable()
         {
@@ -20,6 +19,11 @@ namespace CatlikeCodings.ObjectManagement
             {
                 persistentObjects = new PersistableObject[0];
             }
+        }
+
+        public void ConfigureSpawn(Shape shape)
+        {
+            spawnZone.ConfigureSpawn(shape);
         }
 
         public override void Save(GameDataWriter writer)

@@ -152,6 +152,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: adb3188b23b241a29b1b84180050ccd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spawnConfig:
+    movementDirection: 0
+    speed:
+      min: 0
+      max: 0
+    angularSpeed:
+      min: 0
+      max: 0
+    scale:
+      min: 0
+      max: 0
+    color:
+      hue:
+        min: 0
+        max: 0
+      saturation:
+        min: 0
+        max: 0
+      value:
+        min: 0
+        max: 0
   surfaceOnly: 1
 --- !u!4 &165585883
 Transform:
@@ -243,6 +264,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: adb3188b23b241a29b1b84180050ccd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spawnConfig:
+    movementDirection: 0
+    speed:
+      min: 0
+      max: 0
+    angularSpeed:
+      min: 0
+      max: 0
+    scale:
+      min: 0
+      max: 0
+    color:
+      hue:
+        min: 0
+        max: 0
+      saturation:
+        min: 0
+        max: 0
+      value:
+        min: 0
+        max: 0
   surfaceOnly: 0
 --- !u!4 &561286918
 Transform:
@@ -305,6 +347,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd506d91f0b54a80a0280fa3287d0e42, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spawnConfig:
+    movementDirection: 2
+    speed:
+      min: 1.5
+      max: 2.5
+    angularSpeed:
+      min: 0
+      max: 90
+    scale:
+      min: 0.1
+      max: 1
+    color:
+      hue:
+        min: 0
+        max: 1
+      saturation:
+        min: 0.5
+        max: 1
+      value:
+        min: 0.25
+        max: 1
+  overrideConfig: 1
   sequential: 1
   spawnZones:
   - {fileID: 1297354268}
@@ -353,6 +417,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd506d91f0b54a80a0280fa3287d0e42, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spawnConfig:
+    movementDirection: 0
+    speed:
+      min: 0
+      max: 0
+    angularSpeed:
+      min: 0
+      max: 0
+    scale:
+      min: 0
+      max: 0
+    color:
+      hue:
+        min: 0
+        max: 0
+      saturation:
+        min: 0
+        max: 0
+      value:
+        min: 0
+        max: 0
+  overrideConfig: 0
   sequential: 0
   spawnZones:
   - {fileID: 561286917}
@@ -403,6 +489,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: adb3188b23b241a29b1b84180050ccd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spawnConfig:
+    movementDirection: 0
+    speed:
+      min: 0
+      max: 0
+    angularSpeed:
+      min: 0
+      max: 0
+    scale:
+      min: 0
+      max: 0
+    color:
+      hue:
+        min: 0
+        max: 1
+      saturation:
+        min: 0.5
+        max: 1
+      value:
+        min: 0.25
+        max: 1
   surfaceOnly: 0
 --- !u!1 &1012277553
 GameObject:
@@ -551,6 +658,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a06687b3c056488a96223de5a80d111a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spawnConfig:
+    movementDirection: 0
+    speed:
+      min: 0
+      max: 0
+    angularSpeed:
+      min: 0
+      max: 0
+    scale:
+      min: 0
+      max: 0
+    color:
+      hue:
+        min: 0
+        max: 0
+      saturation:
+        min: 0
+        max: 0
+      value:
+        min: 0
+        max: 0
   surfaceOnly: 0
 --- !u!4 &1220679579
 Transform:
@@ -611,6 +739,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: adb3188b23b241a29b1b84180050ccd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spawnConfig:
+    movementDirection: 0
+    speed:
+      min: 0
+      max: 0
+    angularSpeed:
+      min: 0
+      max: 0
+    scale:
+      min: 0
+      max: 0
+    color:
+      hue:
+        min: 0
+        max: 1
+      saturation:
+        min: 0.5
+        max: 1
+      value:
+        min: 0.25
+        max: 1
   surfaceOnly: 0
 --- !u!1 &1502148489
 GameObject:
@@ -687,6 +836,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a06687b3c056488a96223de5a80d111a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spawnConfig:
+    movementDirection: 0
+    speed:
+      min: 0
+      max: 0
+    angularSpeed:
+      min: 0
+      max: 0
+    scale:
+      min: 0
+      max: 0
+    color:
+      hue:
+        min: 0
+        max: 0
+      saturation:
+        min: 0
+        max: 0
+      value:
+        min: 0
+        max: 0
   surfaceOnly: 1
 --- !u!4 &1773869807
 Transform:

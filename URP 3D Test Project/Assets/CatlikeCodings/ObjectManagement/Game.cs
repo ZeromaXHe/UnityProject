@@ -23,7 +23,7 @@ namespace CatlikeCodings.ObjectManagement
         [SerializeField] private Slider creationSpeedSlider;
         [SerializeField] private Slider destructionSpeedSlider;
 
-        private const int SaveVersion = 3;
+        private const int SaveVersion = 4;
         private Random.State _mainRandomState;
         private List<Shape> _shapes;
         private float _creationProgress, _destructionProgress;
@@ -108,6 +108,11 @@ namespace CatlikeCodings.ObjectManagement
 
         private void FixedUpdate()
         {
+            foreach (var shape in _shapes)
+            {
+                shape.GameUpdate();
+            }
+
             _creationProgress += Time.deltaTime * CreationSpeed;
             while (_creationProgress >= 1f)
             {
@@ -206,16 +211,7 @@ namespace CatlikeCodings.ObjectManagement
         private void CreateShape()
         {
             var instance = shapeFactory.GetRandom();
-            var t = instance.transform;
-            t.localPosition = GameLevel.Current.SpawnPoint;
-            t.localRotation = Random.rotation;
-            t.localScale = Vector3.one * Random.Range(0.1f, 1f);
-            instance.SetColor(Random.ColorHSV(
-                hueMin: 0f, hueMax: 1f,
-                saturationMin: 0.5f, saturationMax: 1f,
-                valueMin: 0.25f, valueMax: 1f,
-                alphaMin: 1f, alphaMax: 1f
-            ));
+            GameLevel.Current.ConfigureSpawn(instance);
             _shapes.Add(instance);
         }
 

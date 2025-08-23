@@ -26,6 +26,8 @@ namespace CatlikeCodings.ObjectManagement
         }
 
         public int MaterialId { get; private set; }
+        public Vector3 AngularVelocity { get; set; }
+        public Vector3 Velocity { get; set; }
 
         private Color _color;
         private MeshRenderer _meshRenderer;
@@ -36,6 +38,12 @@ namespace CatlikeCodings.ObjectManagement
         private void Awake()
         {
             _meshRenderer = GetComponent<MeshRenderer>();
+        }
+
+        public void GameUpdate()
+        {
+            transform.Rotate(AngularVelocity * Time.deltaTime);
+            transform.localPosition += Velocity * Time.deltaTime;
         }
 
         public void SetMaterial(Material material, int materialId)
@@ -56,12 +64,16 @@ namespace CatlikeCodings.ObjectManagement
         {
             base.Save(writer);
             writer.Write(_color);
+            writer.Write(AngularVelocity);
+            writer.Write(Velocity);
         }
 
         public override void Load(GameDataReader reader)
         {
             base.Load(reader);
             SetColor(reader.Version > 0 ? reader.ReadColor() : Color.white);
+            AngularVelocity = reader.Version >= 4 ? reader.ReadVector3() : Vector3.zero;
+            Velocity = reader.Version >= 4 ? reader.ReadVector3() : Vector3.zero;
         }
     }
 }
