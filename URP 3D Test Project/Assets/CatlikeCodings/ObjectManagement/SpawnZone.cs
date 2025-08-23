@@ -6,7 +6,7 @@ namespace CatlikeCodings.ObjectManagement
     /// Copyright (C) 2025-present Zhu Xiaohe(aka ZeromaXHe)
     /// Author: Zhu XH (ZeromaXHe)
     /// Date: 2025-08-23 11:57:07
-    public abstract class SpawnZone : PersistableObject
+    public abstract class SpawnZone : GameLevelObject
     {
         [System.Serializable]
         public struct SpawnConfiguration
@@ -58,14 +58,28 @@ namespace CatlikeCodings.ObjectManagement
             public LifecycleConfiguration lifecycle;
         }
 
+        [SerializeField, Range(0f, 50f)] private float spawnSpeed;
         [SerializeField] private SpawnConfiguration spawnConfig;
 
+        private float _spawnProgress;
+
         public abstract Vector3 SpawnPoint { get; }
+
+        public override void GameUpdate ()
+        {
+            _spawnProgress += Time.deltaTime * spawnSpeed;
+            while (_spawnProgress >= 1f)
+            {
+                _spawnProgress -= 1f;
+                SpawnShapes();
+            }
+        }
 
         public virtual void SpawnShapes()
         {
             var factoryIndex = Random.Range(0, spawnConfig.factories.Length);
             var shape = spawnConfig.factories[factoryIndex].GetRandom();
+            shape.gameObject.layer = gameObject.layer;
 
             var t = shape.transform;
             t.localPosition = SpawnPoint;
@@ -129,6 +143,7 @@ namespace CatlikeCodings.ObjectManagement
         {
             var factoryIndex = Random.Range(0, spawnConfig.factories.Length);
             var shape = spawnConfig.factories[factoryIndex].GetRandom();
+            shape.gameObject.layer = gameObject.layer;
             var t = shape.transform;
             t.localRotation = Random.rotation;
             t.localScale = focalShape.transform.localScale * spawnConfig.satellite.relativeScale.RandomValueInRange;
@@ -179,6 +194,22 @@ namespace CatlikeCodings.ObjectManagement
             {
                 shape.AddBehavior<DyingShapeBehavior>().Initialize(shape, durations.z);
             }
+        }
+
+        public override void Save(GameDataWriter writer)
+        {
+            base.Save(writer);
+            writer.Write(_spawnProgress);
+        }
+
+        public override void Load(GameDataReader reader)
+        {
+            if (reader.Version >= 7)
+            {
+                base.Load(reader);
+            }
+
+            _spawnProgress = reader.ReadFloat();
         }
     }
 }

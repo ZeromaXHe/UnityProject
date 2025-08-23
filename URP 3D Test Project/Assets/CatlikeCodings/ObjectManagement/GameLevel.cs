@@ -1,15 +1,18 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace CatlikeCodings.ObjectManagement
 {
     /// Copyright (C) 2025-present Zhu Xiaohe(aka ZeromaXHe)
     /// Author: Zhu XH (ZeromaXHe)
     /// Date: 2025-08-23 12:07:35
-    public class GameLevel : PersistableObject
+    public partial class GameLevel : PersistableObject
     {
         [SerializeField] private int populationLimit;
         [SerializeField] private SpawnZone spawnZone;
-        [SerializeField] private PersistableObject[] persistentObjects;
+
+        [FormerlySerializedAs("persistentObjects")] [SerializeField]
+        private GameLevelObject[] levelObjects;
 
         public int PopulationLimit => populationLimit;
         public static GameLevel Current { get; private set; }
@@ -17,9 +20,9 @@ namespace CatlikeCodings.ObjectManagement
         private void OnEnable()
         {
             Current = this;
-            if (persistentObjects == null)
+            if (levelObjects == null)
             {
-                persistentObjects = new PersistableObject[0];
+                levelObjects = new GameLevelObject[0];
             }
         }
 
@@ -30,8 +33,8 @@ namespace CatlikeCodings.ObjectManagement
 
         public override void Save(GameDataWriter writer)
         {
-            writer.Write(persistentObjects.Length);
-            foreach (var obj in persistentObjects)
+            writer.Write(levelObjects.Length);
+            foreach (var obj in levelObjects)
             {
                 obj.Save(writer);
             }
@@ -42,7 +45,15 @@ namespace CatlikeCodings.ObjectManagement
             var savedCount = reader.ReadInt();
             for (var i = 0; i < savedCount; i++)
             {
-                persistentObjects[i].Load(reader);
+                levelObjects[i].Load(reader);
+            }
+        }
+
+        public void GameUpdate()
+        {
+            foreach (var obj in levelObjects)
+            {
+                obj.GameUpdate();
             }
         }
     }

@@ -25,7 +25,7 @@ namespace CatlikeCodings.ObjectManagement
         [SerializeField] private ShapeFactory[] shapeFactories;
         [SerializeField] private float destroyDuration;
 
-        private const int SaveVersion = 6;
+        private const int SaveVersion = 7;
         private Random.State _mainRandomState;
         private List<Shape> _shapes;
         private List<ShapeInstance> _killList, _markAsDyingList;
@@ -146,6 +146,7 @@ namespace CatlikeCodings.ObjectManagement
                 shape.GameUpdate();
             }
 
+            GameLevel.Current.GameUpdate();
             _inGameUpdateLoop = false;
             _creationProgress += Time.deltaTime * CreationSpeed;
             while (_creationProgress >= 1f)
@@ -360,8 +361,9 @@ namespace CatlikeCodings.ObjectManagement
                 MarkAsDyingImmediately(shape);
             }
         }
-        
-        public bool IsMarkedAsDying (Shape shape) {
+
+        public bool IsMarkedAsDying(Shape shape)
+        {
             return shape.SaveIndex < _dyingShapeCount;
         }
     }
