@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace CatlikeCodings.ObjectManagement
@@ -10,13 +11,70 @@ namespace CatlikeCodings.ObjectManagement
     {
         [SerializeField] private Shape[] prefabs;
         [SerializeField] private Material[] materials;
+        [SerializeField] private bool recycle;
+
+        private List<Shape>[] _pools;
+
+        // [MemberNotNull(nameof(_pools))] // 不知道为啥导不了这个的包 System.Diagnostics.CodeAnalysis，NotNull 就是正常的
+        private void CreatePools()
+        {
+            _pools = new List<Shape>[prefabs.Length];
+            for (var i = 0; i < _pools.Length; i++)
+            {
+                _pools[i] = new List<Shape>();
+            }
+        }
 
         public Shape Get(int shapeId = 0, int materialId = 0)
         {
-            var instance = Instantiate(prefabs[shapeId]);
-            instance.ShapeId = shapeId;
+            Shape instance;
+            if (recycle)
+            {
+                if (_pools == null)
+                {
+                    CreatePools();
+                }
+
+                var pool = _pools[shapeId];
+                var lastIndex = pool.Count - 1;
+                if (lastIndex >= 0)
+                {
+                    instance = pool[lastIndex];
+                    instance.gameObject.SetActive(true);
+                    pool.RemoveAt(lastIndex);
+                }
+                else
+                {
+                    instance = Instantiate(prefabs[shapeId]);
+                    instance.ShapeId = shapeId;
+                }
+            }
+            else
+            {
+                instance = Instantiate(prefabs[shapeId]);
+                instance.ShapeId = shapeId;
+            }
+
             instance.SetMaterial(materials[materialId], materialId);
             return instance;
+        }
+
+        public void Reclaim(Shape shapeToRecycle)
+        {
+            if (recycle)
+            {
+                if (_pools == null)
+                {
+                    CreatePools();
+                }
+
+                _pools[shapeToRecycle.ShapeId].Add(shapeToRecycle);
+                shapeToRecycle.gameObject.SetActive(false);
+            }
+            else
+            {
+                Destroy(shapeToRecycle.gameObject);
+            }
         }
 
         public Shape GetRandom() =>

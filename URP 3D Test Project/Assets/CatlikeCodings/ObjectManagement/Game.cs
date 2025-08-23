@@ -11,13 +11,18 @@ namespace CatlikeCodings.ObjectManagement
     {
         public ShapeFactory shapeFactory;
         public KeyCode createKey = KeyCode.C;
+        public KeyCode destroyKey = KeyCode.X;
         public KeyCode newGameKey = KeyCode.N;
         public KeyCode saveKey = KeyCode.S;
         public KeyCode loadKey = KeyCode.L;
         public PersistentStorage storage;
 
+        private const int SaveVersion = 1;
         private List<Shape> _shapes;
-        const int saveVersion = 1;
+        private float _creationProgress, _destructionProgress;
+
+        public float CreationSpeed { get; set; }
+        public float DestructionSpeed { get; set; }
 
         private void Awake()
         {
@@ -30,18 +35,36 @@ namespace CatlikeCodings.ObjectManagement
             {
                 CreateShape();
             }
+            else if (Input.GetKeyDown(destroyKey))
+            {
+                DestroyShape();
+            }
             else if (Input.GetKey(newGameKey))
             {
                 BeginNewGame();
             }
             else if (Input.GetKeyDown(saveKey))
             {
-                storage.Save(this, saveVersion);
+                storage.Save(this, SaveVersion);
             }
             else if (Input.GetKeyDown(loadKey))
             {
                 BeginNewGame();
                 storage.Load(this);
+            }
+
+            _creationProgress += Time.deltaTime * CreationSpeed;
+            while (_creationProgress >= 1f)
+            {
+                _creationProgress -= 1f;
+                CreateShape();
+            }
+
+            _destructionProgress += Time.deltaTime * DestructionSpeed;
+            while (_destructionProgress >= 1f)
+            {
+                _destructionProgress -= 1f;
+                DestroyShape();
             }
         }
 
@@ -59,7 +82,7 @@ namespace CatlikeCodings.ObjectManagement
         public override void Load(GameDataReader reader)
         {
             var version = reader.Version;
-            if (version > saveVersion)
+            if (version > SaveVersion)
             {
                 Debug.LogError("Unsupported future save version " + version);
                 return;
@@ -80,7 +103,7 @@ namespace CatlikeCodings.ObjectManagement
         {
             foreach (var obj in _shapes)
             {
-                Destroy(obj.gameObject);
+                shapeFactory.Reclaim(obj);
             }
 
             _shapes.Clear();
@@ -100,6 +123,18 @@ namespace CatlikeCodings.ObjectManagement
                 alphaMin: 1f, alphaMax: 1f
             ));
             _shapes.Add(instance);
+        }
+
+        private void DestroyShape()
+        {
+            if (_shapes.Count > 0)
+            {
+                var index = Random.Range(0, _shapes.Count);
+                shapeFactory.Reclaim(_shapes[index]);
+                var lastIndex = _shapes.Count - 1;
+                _shapes[index] = _shapes[lastIndex];
+                _shapes.RemoveAt(lastIndex);
+            }
         }
     }
 }
