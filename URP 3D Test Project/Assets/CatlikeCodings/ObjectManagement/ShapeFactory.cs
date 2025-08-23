@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace CatlikeCodings.ObjectManagement
 {
@@ -13,6 +14,7 @@ namespace CatlikeCodings.ObjectManagement
         [SerializeField] private Material[] materials;
         [SerializeField] private bool recycle;
 
+        private Scene _poolScene;
         private List<Shape>[] _pools;
 
         // [MemberNotNull(nameof(_pools))] // 不知道为啥导不了这个的包 System.Diagnostics.CodeAnalysis，NotNull 就是正常的
@@ -23,6 +25,27 @@ namespace CatlikeCodings.ObjectManagement
             {
                 _pools[i] = new List<Shape>();
             }
+
+            if (Application.isEditor)
+            {
+                _poolScene = SceneManager.GetSceneByName(name);
+                if (_poolScene.isLoaded)
+                {
+                    var rootObjects = _poolScene.GetRootGameObjects();
+                    foreach (var rootObj in rootObjects)
+                    {
+                        var pooledShape = rootObj.GetComponent<Shape>();
+                        if (!pooledShape.gameObject.activeSelf)
+                        {
+                            _pools[pooledShape.ShapeId].Add(pooledShape);
+                        }
+                    }
+
+                    return;
+                }
+            }
+
+            _poolScene = SceneManager.CreateScene(name);
         }
 
         public Shape Get(int shapeId = 0, int materialId = 0)
@@ -47,6 +70,7 @@ namespace CatlikeCodings.ObjectManagement
                 {
                     instance = Instantiate(prefabs[shapeId]);
                     instance.ShapeId = shapeId;
+                    SceneManager.MoveGameObjectToScene(instance.gameObject, _poolScene);
                 }
             }
             else

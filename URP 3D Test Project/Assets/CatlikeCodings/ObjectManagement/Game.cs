@@ -1,6 +1,7 @@
+using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace CatlikeCodings.ObjectManagement
 {
@@ -16,17 +17,48 @@ namespace CatlikeCodings.ObjectManagement
         public KeyCode saveKey = KeyCode.S;
         public KeyCode loadKey = KeyCode.L;
         public PersistentStorage storage;
+        public int levelCount;
 
-        private const int SaveVersion = 1;
+        private const int SaveVersion = 2;
         private List<Shape> _shapes;
         private float _creationProgress, _destructionProgress;
+        private int _loadedLevelBuildIndex;
 
         public float CreationSpeed { get; set; }
         public float DestructionSpeed { get; set; }
 
-        private void Awake()
+        private void Start()
         {
             _shapes = new List<Shape>();
+            if (Application.isEditor)
+            {
+                for (var i = 0; i < SceneManager.sceneCount; i++)
+                {
+                    var loadedScene = SceneManager.GetSceneAt(i);
+                    if (loadedScene.name.Contains("Level "))
+                    {
+                        SceneManager.SetActiveScene(loadedScene);
+                        _loadedLevelBuildIndex = loadedScene.buildIndex;
+                        return;
+                    }
+                }
+            }
+
+            StartCoroutine(LoadLevel(1));
+        }
+
+        private IEnumerator LoadLevel(int levelBuildIndex)
+        {
+            enabled = false;
+            if (_loadedLevelBuildIndex > 0)
+            {
+                yield return SceneManager.UnloadSceneAsync(_loadedLevelBuildIndex);
+            }
+
+            yield return SceneManager.LoadSceneAsync(levelBuildIndex, LoadSceneMode.Additive);
+            SceneManager.SetActiveScene(SceneManager.GetSceneByBuildIndex(levelBuildIndex));
+            _loadedLevelBuildIndex = levelBuildIndex;
+            enabled = true;
         }
 
         private void Update()
@@ -52,6 +84,18 @@ namespace CatlikeCodings.ObjectManagement
                 BeginNewGame();
                 storage.Load(this);
             }
+            else
+            {
+                for (var i = 1; i <= levelCount; i++)
+                {
+                    if (Input.GetKeyDown(KeyCode.Alpha0 + i))
+                    {
+                        BeginNewGame();
+                        StartCoroutine(LoadLevel(i));
+                        return;
+                    }
+                }
+            }
 
             _creationProgress += Time.deltaTime * CreationSpeed;
             while (_creationProgress >= 1f)
@@ -71,6 +115,7 @@ namespace CatlikeCodings.ObjectManagement
         public override void Save(GameDataWriter writer)
         {
             writer.Write(_shapes.Count);
+            writer.Write(_loadedLevelBuildIndex);
             foreach (var o in _shapes)
             {
                 writer.Write(o.ShapeId);
@@ -89,6 +134,7 @@ namespace CatlikeCodings.ObjectManagement
             }
 
             var count = version <= 0 ? -version : reader.ReadInt();
+            StartCoroutine(LoadLevel(version < 2 ? 1 : reader.ReadInt()));
             for (var i = 0; i < count; i++)
             {
                 var shapeId = version > 0 ? reader.ReadInt() : 0;

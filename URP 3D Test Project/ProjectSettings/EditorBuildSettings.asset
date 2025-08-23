@@ -6,6 +6,12 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/CatlikeCodings/ObjectManagement/Object Scene.unity
+    guid: 83d888d97b233c749bcb5c9afe5c1b8b
+  - enabled: 1
+    path: Assets/CatlikeCodings/ObjectManagement/Level 1.unity
+    guid: 74e258d88adde6b42a914e24f17abbb6
+  - enabled: 1
     path: Assets/Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
   m_configObjects: {}
