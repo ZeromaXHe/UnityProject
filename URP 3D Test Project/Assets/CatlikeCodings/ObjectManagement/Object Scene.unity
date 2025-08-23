@@ -1045,7 +1045,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15c9aa0391f44fd29646d1eea47325e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shapeFactory: {fileID: 11400000, guid: af10766530784394088d4f713b748973, type: 2}
   createKey: 99
   destroyKey: 120
   newGameKey: 110
@@ -1056,6 +1055,9 @@ MonoBehaviour:
   reseedOnLoad: 0
   creationSpeedSlider: {fileID: 57099779}
   destructionSpeedSlider: {fileID: 915581878}
+  shapeFactories:
+  - {fileID: 11400000, guid: af10766530784394088d4f713b748973, type: 2}
+  - {fileID: 11400000, guid: f5c3b62336036a24ab8787672c178efd, type: 2}
 --- !u!4 &1507164915
 Transform:
   m_ObjectHideFlags: 0

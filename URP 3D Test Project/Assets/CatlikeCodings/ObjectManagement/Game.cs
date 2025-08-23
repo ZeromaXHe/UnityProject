@@ -11,7 +11,6 @@ namespace CatlikeCodings.ObjectManagement
     /// Date: 2025-08-22 22:02:58
     public class Game : PersistableObject
     {
-        [SerializeField] private ShapeFactory shapeFactory;
         public KeyCode createKey = KeyCode.C;
         public KeyCode destroyKey = KeyCode.X;
         public KeyCode newGameKey = KeyCode.N;
@@ -22,8 +21,9 @@ namespace CatlikeCodings.ObjectManagement
         [SerializeField] private bool reseedOnLoad;
         [SerializeField] private Slider creationSpeedSlider;
         [SerializeField] private Slider destructionSpeedSlider;
+        [SerializeField] private ShapeFactory[] shapeFactories;
 
-        private const int SaveVersion = 4;
+        private const int SaveVersion = 5;
         private Random.State _mainRandomState;
         private List<Shape> _shapes;
         private float _creationProgress, _destructionProgress;
@@ -31,6 +31,17 @@ namespace CatlikeCodings.ObjectManagement
 
         public float CreationSpeed { get; set; }
         public float DestructionSpeed { get; set; }
+
+        private void OnEnable()
+        {
+            if (shapeFactories[0].FactoryId != 0)
+            {
+                for (var i = 0; i < shapeFactories.Length; i++)
+                {
+                    shapeFactories[i].FactoryId = i;
+                }
+            }
+        }
 
         private void Start()
         {
@@ -138,11 +149,12 @@ namespace CatlikeCodings.ObjectManagement
             writer.Write(_destructionProgress);
             writer.Write(_loadedLevelBuildIndex);
             GameLevel.Current.Save(writer);
-            foreach (var o in _shapes)
+            foreach (var shape in _shapes)
             {
-                writer.Write(o.ShapeId);
-                writer.Write(o.MaterialId);
-                o.Save(writer);
+                writer.Write(shape.OriginFactory.FactoryId);
+                writer.Write(shape.ShapeId);
+                writer.Write(shape.MaterialId);
+                shape.Save(writer);
             }
         }
 
@@ -184,9 +196,10 @@ namespace CatlikeCodings.ObjectManagement
 
             for (var i = 0; i < count; i++)
             {
+                var factoryId = version >= 5 ? reader.ReadInt() : 0;
                 var shapeId = version > 0 ? reader.ReadInt() : 0;
                 var materialId = version > 0 ? reader.ReadInt() : 0;
-                var instance = shapeFactory.Get(shapeId, materialId);
+                var instance = shapeFactories[factoryId].Get(shapeId, materialId);
                 instance.Load(reader);
                 _shapes.Add(instance);
             }
@@ -200,9 +213,9 @@ namespace CatlikeCodings.ObjectManagement
             Random.InitState(seed);
             creationSpeedSlider.value = CreationSpeed = 0;
             destructionSpeedSlider.value = DestructionSpeed = 0;
-            foreach (var obj in _shapes)
+            foreach (var shape in _shapes)
             {
-                shapeFactory.Reclaim(obj);
+                shape.Recycle();
             }
 
             _shapes.Clear();
@@ -210,9 +223,7 @@ namespace CatlikeCodings.ObjectManagement
 
         private void CreateShape()
         {
-            var instance = shapeFactory.GetRandom();
-            GameLevel.Current.ConfigureSpawn(instance);
-            _shapes.Add(instance);
+            _shapes.Add(GameLevel.Current.SpawnShape());
         }
 
         private void DestroyShape()
@@ -220,7 +231,7 @@ namespace CatlikeCodings.ObjectManagement
             if (_shapes.Count > 0)
             {
                 var index = Random.Range(0, _shapes.Count);
-                shapeFactory.Reclaim(_shapes[index]);
+                _shapes[index].Recycle();
                 var lastIndex = _shapes.Count - 1;
                 _shapes[index] = _shapes[lastIndex];
                 _shapes.RemoveAt(lastIndex);

@@ -14,6 +14,24 @@ namespace CatlikeCodings.ObjectManagement
         [SerializeField] private Material[] materials;
         [SerializeField] private bool recycle;
 
+        public int FactoryId
+        {
+            get => _factoryId;
+            set
+            {
+                if (_factoryId == int.MinValue && value != int.MinValue)
+                {
+                    _factoryId = value;
+                }
+                else
+                {
+                    Debug.Log("Not allowed to change factoryId.");
+                }
+            }
+        }
+
+        [System.NonSerialized] private int _factoryId = int.MinValue;
+
         private Scene _poolScene;
         private List<Shape>[] _pools;
 
@@ -69,6 +87,7 @@ namespace CatlikeCodings.ObjectManagement
                 else
                 {
                     instance = Instantiate(prefabs[shapeId]);
+                    instance.OriginFactory = this;
                     instance.ShapeId = shapeId;
                     SceneManager.MoveGameObjectToScene(instance.gameObject, _poolScene);
                 }
@@ -85,6 +104,12 @@ namespace CatlikeCodings.ObjectManagement
 
         public void Reclaim(Shape shapeToRecycle)
         {
+            if (shapeToRecycle.OriginFactory != this)
+            {
+                Debug.LogError("Tried to reclaim shape with wrong factory.");
+                return;
+            }
+
             if (recycle)
             {
                 if (_pools == null)
