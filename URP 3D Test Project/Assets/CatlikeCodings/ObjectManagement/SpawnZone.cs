@@ -37,9 +37,25 @@ namespace CatlikeCodings.ObjectManagement
                 [FloatRangeSlider(0.1f, 1f)] public FloatRange relativeScale;
                 public FloatRange orbitRadius;
                 public FloatRange orbitFrequency;
+                public bool uniformLifecycles;
             }
 
             public SatelliteConfiguration satellite;
+
+            [System.Serializable]
+            public struct LifecycleConfiguration
+            {
+                [FloatRangeSlider(0f, 2f)] public FloatRange growingDuration;
+                [FloatRangeSlider(0f, 100f)] public FloatRange adultDuration;
+                [FloatRangeSlider(0f, 2f)] public FloatRange dyingDuration;
+
+                public Vector3 RandomDurations => new(
+                    growingDuration.RandomValueInRange,
+                    adultDuration.RandomValueInRange,
+                    dyingDuration.RandomValueInRange);
+            }
+
+            public LifecycleConfiguration lifecycle;
         }
 
         [SerializeField] private SpawnConfiguration spawnConfig;
@@ -71,11 +87,17 @@ namespace CatlikeCodings.ObjectManagement
             }
 
             SetupOscillation(shape);
+            var lifecycleDurations = spawnConfig.lifecycle.RandomDurations;
             var satelliteCount = spawnConfig.satellite.amount.RandomValueInRange;
             for (var i = 0; i < satelliteCount; i++)
             {
-                CreateSatelliteFor(shape);
+                CreateSatelliteFor(shape,
+                    spawnConfig.satellite.uniformLifecycles
+                        ? lifecycleDurations
+                        : spawnConfig.lifecycle.RandomDurations);
             }
+
+            SetupLifecycle(shape, lifecycleDurations);
         }
 
         private void SetupOscillation(Shape shape)
@@ -103,7 +125,7 @@ namespace CatlikeCodings.ObjectManagement
             };
         }
 
-        private void CreateSatelliteFor(Shape focalShape)
+        private void CreateSatelliteFor(Shape focalShape, Vector3 lifecycleDurations)
         {
             var factoryIndex = Random.Range(0, spawnConfig.factories.Length);
             var shape = spawnConfig.factories[factoryIndex].GetRandom();
@@ -116,6 +138,7 @@ namespace CatlikeCodings.ObjectManagement
                 spawnConfig.satellite.orbitRadius.RandomValueInRange,
                 spawnConfig.satellite.orbitFrequency.RandomValueInRange
             );
+            SetupLifecycle(shape, lifecycleDurations);
         }
 
         private void SetupColor(Shape shape)
@@ -130,6 +153,31 @@ namespace CatlikeCodings.ObjectManagement
                 {
                     shape.SetColor(spawnConfig.color.RandomInRange, i);
                 }
+            }
+        }
+
+        private void SetupLifecycle(Shape shape, Vector3 durations)
+        {
+            if (durations.x > 0f)
+            {
+                if (durations.y > 0f || durations.z > 0f)
+                {
+                    shape.AddBehavior<LifecycleShapeBehavior>()
+                        .Initialize(shape, durations.x, durations.y, durations.z);
+                }
+                else
+                {
+                    shape.AddBehavior<GrowingShapeBehavior>().Initialize(shape, durations.x);
+                }
+            }
+            else if (durations.y > 0f)
+            {
+                shape.AddBehavior<LifecycleShapeBehavior>()
+                    .Initialize(shape, durations.x, durations.y, durations.z);
+            }
+            else if (durations.z > 0f)
+            {
+                shape.AddBehavior<DyingShapeBehavior>().Initialize(shape, durations.z);
             }
         }
     }

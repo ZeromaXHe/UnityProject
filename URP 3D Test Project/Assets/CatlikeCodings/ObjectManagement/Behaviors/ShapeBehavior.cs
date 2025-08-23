@@ -8,7 +8,9 @@ namespace CatlikeCodings.ObjectManagement.Behaviors
         Movement,
         Rotation,
         Oscillation,
-        Satellite
+        Satellite,
+        Growing,
+        Dying
     }
 
     public static class ShapeBehaviorTypeMethods
@@ -25,6 +27,10 @@ namespace CatlikeCodings.ObjectManagement.Behaviors
                     return ShapeBehaviorPool<OscillationShapeBehavior>.Get();
                 case ShapeBehaviorType.Satellite:
                     return ShapeBehaviorPool<SatelliteShapeBehavior>.Get();
+                case ShapeBehaviorType.Growing:
+                    return ShapeBehaviorPool<GrowingShapeBehavior>.Get();
+                case ShapeBehaviorType.Dying:
+                    return ShapeBehaviorPool<DyingShapeBehavior>.Get();
                 default:
                     Debug.Log("Forgot to support " + type);
                     return null;

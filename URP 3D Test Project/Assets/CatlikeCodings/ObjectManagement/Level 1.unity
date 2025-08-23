@@ -195,6 +195,17 @@ MonoBehaviour:
       orbitFrequency:
         min: 0
         max: 0
+      uniformLifecycles: 0
+    lifecycle:
+      growingDuration:
+        min: 0
+        max: 0
+      adultDuration:
+        min: 0
+        max: 0
+      dyingDuration:
+        min: 0
+        max: 0
   surfaceOnly: 1
 --- !u!4 &165585883
 Transform:
@@ -329,6 +340,17 @@ MonoBehaviour:
       orbitFrequency:
         min: 0
         max: 0
+      uniformLifecycles: 0
+    lifecycle:
+      growingDuration:
+        min: 0
+        max: 0
+      adultDuration:
+        min: 0
+        max: 0
+      dyingDuration:
+        min: 0
+        max: 0
   surfaceOnly: 0
 --- !u!4 &561286918
 Transform:
@@ -436,6 +458,17 @@ MonoBehaviour:
       orbitFrequency:
         min: 0.25
         max: 0.5
+      uniformLifecycles: 0
+    lifecycle:
+      growingDuration:
+        min: 1
+        max: 2
+      adultDuration:
+        min: 1
+        max: 5
+      dyingDuration:
+        min: 1
+        max: 2
   overrideConfig: 1
   sequential: 1
   spawnZones:
@@ -526,6 +559,17 @@ MonoBehaviour:
         min: 0
         max: 0
       orbitFrequency:
+        min: 0
+        max: 0
+      uniformLifecycles: 0
+    lifecycle:
+      growingDuration:
+        min: 0
+        max: 0
+      adultDuration:
+        min: 0
+        max: 0
+      dyingDuration:
         min: 0
         max: 0
   overrideConfig: 0
@@ -620,6 +664,17 @@ MonoBehaviour:
         min: 0
         max: 0
       orbitFrequency:
+        min: 0
+        max: 0
+      uniformLifecycles: 0
+    lifecycle:
+      growingDuration:
+        min: 0
+        max: 0
+      adultDuration:
+        min: 0
+        max: 0
+      dyingDuration:
         min: 0
         max: 0
   surfaceOnly: 0
@@ -813,6 +868,17 @@ MonoBehaviour:
       orbitFrequency:
         min: 0
         max: 0
+      uniformLifecycles: 0
+    lifecycle:
+      growingDuration:
+        min: 0
+        max: 0
+      adultDuration:
+        min: 0
+        max: 0
+      dyingDuration:
+        min: 0
+        max: 0
   surfaceOnly: 0
 --- !u!4 &1220679579
 Transform:
@@ -914,6 +980,17 @@ MonoBehaviour:
         min: 0
         max: 0
       orbitFrequency:
+        min: 0
+        max: 0
+      uniformLifecycles: 0
+    lifecycle:
+      growingDuration:
+        min: 0
+        max: 0
+      adultDuration:
+        min: 0
+        max: 0
+      dyingDuration:
         min: 0
         max: 0
   surfaceOnly: 0
@@ -1033,6 +1110,17 @@ MonoBehaviour:
         min: 0
         max: 0
       orbitFrequency:
+        min: 0
+        max: 0
+      uniformLifecycles: 0
+    lifecycle:
+      growingDuration:
+        min: 0
+        max: 0
+      adultDuration:
+        min: 0
+        max: 0
+      dyingDuration:
         min: 0
         max: 0
   surfaceOnly: 1

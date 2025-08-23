@@ -56,6 +56,7 @@ namespace CatlikeCodings.ObjectManagement
         public float Age { get; private set; }
         public int InstanceId { get; private set; }
         public int SaveIndex { get; set; }
+        public bool IsMarkedAsDying => Game.Instance.IsMarkedAsDying(this);
 
         private static MaterialPropertyBlock _sharedPropertyBlock;
         private static readonly int ColorPropertyId = Shader.PropertyToID("_Color");
@@ -207,6 +208,16 @@ namespace CatlikeCodings.ObjectManagement
             {
                 shapeBehavior.ResolveShapeInstances();
             }
+        }
+
+        public void Die()
+        {
+            Game.Instance.Kill(this);
+        }
+
+        public void MarkAsDying()
+        {
+            Game.Instance.MarkAsDying(this);
         }
     }
 }

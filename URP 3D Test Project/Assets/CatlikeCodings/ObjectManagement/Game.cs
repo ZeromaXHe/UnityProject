@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using CatlikeCodings.ObjectManagement.Behaviors;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -22,12 +23,16 @@ namespace CatlikeCodings.ObjectManagement
         [SerializeField] private Slider creationSpeedSlider;
         [SerializeField] private Slider destructionSpeedSlider;
         [SerializeField] private ShapeFactory[] shapeFactories;
+        [SerializeField] private float destroyDuration;
 
         private const int SaveVersion = 6;
         private Random.State _mainRandomState;
         private List<Shape> _shapes;
+        private List<ShapeInstance> _killList, _markAsDyingList;
         private float _creationProgress, _destructionProgress;
         private int _loadedLevelBuildIndex;
+        private bool _inGameUpdateLoop;
+        private int _dyingShapeCount;
 
         public float CreationSpeed { get; set; }
         public float DestructionSpeed { get; set; }
@@ -61,6 +66,8 @@ namespace CatlikeCodings.ObjectManagement
         {
             _mainRandomState = Random.state;
             _shapes = new List<Shape>();
+            _killList = new List<ShapeInstance>();
+            _markAsDyingList = new List<ShapeInstance>();
             if (Application.isEditor)
             {
                 for (var i = 0; i < SceneManager.sceneCount; i++)
@@ -133,11 +140,13 @@ namespace CatlikeCodings.ObjectManagement
 
         private void FixedUpdate()
         {
+            _inGameUpdateLoop = true;
             foreach (var shape in _shapes)
             {
                 shape.GameUpdate();
             }
 
+            _inGameUpdateLoop = false;
             _creationProgress += Time.deltaTime * CreationSpeed;
             while (_creationProgress >= 1f)
             {
@@ -155,10 +164,36 @@ namespace CatlikeCodings.ObjectManagement
             var limit = GameLevel.Current.PopulationLimit;
             if (limit > 0)
             {
-                while (_shapes.Count > limit)
+                while (_shapes.Count - _dyingShapeCount > limit)
                 {
                     DestroyShape();
                 }
+            }
+
+            if (_killList.Count > 0)
+            {
+                foreach (var killShape in _killList)
+                {
+                    if (killShape.IsValid)
+                    {
+                        KillImmediately(killShape.Shape);
+                    }
+                }
+
+                _killList.Clear();
+            }
+
+            if (_markAsDyingList.Count > 0)
+            {
+                foreach (var markAsDying in _markAsDyingList)
+                {
+                    if (markAsDying.IsValid)
+                    {
+                        MarkAsDyingImmediately(markAsDying.Shape);
+                    }
+                }
+
+                _markAsDyingList.Clear();
             }
         }
 
@@ -246,19 +281,88 @@ namespace CatlikeCodings.ObjectManagement
             }
 
             _shapes.Clear();
+            _dyingShapeCount = 0;
         }
 
         private void DestroyShape()
         {
-            if (_shapes.Count > 0)
+            if (_shapes.Count - _dyingShapeCount > 0)
             {
-                var index = Random.Range(0, _shapes.Count);
-                _shapes[index].Recycle();
-                var lastIndex = _shapes.Count - 1;
+                var shape = _shapes[Random.Range(_dyingShapeCount, _shapes.Count)];
+                if (destroyDuration <= 0f)
+                {
+                    KillImmediately(shape);
+                }
+                else
+                {
+                    shape.AddBehavior<DyingShapeBehavior>().Initialize(
+                        shape, destroyDuration
+                    );
+                }
+            }
+        }
+
+        public void Kill(Shape shape)
+        {
+            if (_inGameUpdateLoop)
+            {
+                _killList.Add(shape);
+            }
+            else
+            {
+                KillImmediately(shape);
+            }
+        }
+
+        private void KillImmediately(Shape shape)
+        {
+            var index = shape.SaveIndex;
+            shape.Recycle();
+            if (index < _dyingShapeCount && index < --_dyingShapeCount)
+            {
+                _shapes[_dyingShapeCount].SaveIndex = index;
+                _shapes[index] = _shapes[_dyingShapeCount];
+                index = _dyingShapeCount;
+            }
+
+            var lastIndex = _shapes.Count - 1;
+            if (index < lastIndex)
+            {
                 _shapes[lastIndex].SaveIndex = index;
                 _shapes[index] = _shapes[lastIndex];
-                _shapes.RemoveAt(lastIndex);
             }
+
+            _shapes.RemoveAt(lastIndex);
+        }
+
+        private void MarkAsDyingImmediately(Shape shape)
+        {
+            var index = shape.SaveIndex;
+            if (index < _dyingShapeCount)
+            {
+                return;
+            }
+
+            _shapes[_dyingShapeCount].SaveIndex = index;
+            _shapes[index] = _shapes[_dyingShapeCount];
+            shape.SaveIndex = _dyingShapeCount;
+            _shapes[_dyingShapeCount++] = shape;
+        }
+
+        public void MarkAsDying(Shape shape)
+        {
+            if (_inGameUpdateLoop)
+            {
+                _markAsDyingList.Add(shape);
+            }
+            else
+            {
+                MarkAsDyingImmediately(shape);
+            }
+        }
+        
+        public bool IsMarkedAsDying (Shape shape) {
+            return shape.SaveIndex < _dyingShapeCount;
         }
     }
 }
