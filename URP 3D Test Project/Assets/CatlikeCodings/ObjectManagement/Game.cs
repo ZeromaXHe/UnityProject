@@ -10,7 +10,7 @@ namespace CatlikeCodings.ObjectManagement
     /// Date: 2025-08-22 22:02:58
     public class Game : PersistableObject
     {
-        public ShapeFactory shapeFactory;
+        [SerializeField] private ShapeFactory shapeFactory;
         public KeyCode createKey = KeyCode.C;
         public KeyCode destroyKey = KeyCode.X;
         public KeyCode newGameKey = KeyCode.N;
@@ -24,11 +24,19 @@ namespace CatlikeCodings.ObjectManagement
         private float _creationProgress, _destructionProgress;
         private int _loadedLevelBuildIndex;
 
+        public static Game Instance { get; private set; }
         public float CreationSpeed { get; set; }
         public float DestructionSpeed { get; set; }
+        public SpawnZone SpawnZoneOfLevel { get; set; }
+
+        private void OnEnable()
+        {
+            Instance = this;
+        }
 
         private void Start()
         {
+            Instance = this;
             _shapes = new List<Shape>();
             if (Application.isEditor)
             {
@@ -159,7 +167,7 @@ namespace CatlikeCodings.ObjectManagement
         {
             var instance = shapeFactory.GetRandom();
             var t = instance.transform;
-            t.localPosition = Random.insideUnitSphere * 5f;
+            t.localPosition = SpawnZoneOfLevel.SpawnPoint;
             t.localRotation = Random.rotation;
             t.localScale = Vector3.one * Random.Range(0.1f, 1f);
             instance.SetColor(Random.ColorHSV(
